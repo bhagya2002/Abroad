@@ -9,9 +9,9 @@ import Foundation
 import CoreLocation
 import UIKit
 
-enum PinCategory: String, Codable {
+enum PinCategory: String, Codable, CaseIterable {
     case visited = "Visited"
-    case future = "Future Travel Plan"
+    case future = "Bucket List"
 }
 
 struct Pin: Identifiable, Codable {
@@ -20,13 +20,24 @@ struct Pin: Identifiable, Codable {
     var coordinate: CLLocationCoordinate2D
     var category: PinCategory
     var photos: [Data]
-    var startDate: Date? // ✅ Trip Start Date (Optional)
-    var endDate: Date? // ✅ Trip End Date (Optional)
-    var placesVisited: [String] // ✅ List of places (Optional, can be empty)
-    var tripRating: Int? // ✅ Trip rating (1-5 stars)
+    var startDate: Date? // Trip Start Date (Optional)
+    var endDate: Date? // Trip End Date (Optional)
+    var placesVisited: [String] // List of places (Optional, can be empty)
+    var tripRating: Int? // Trip rating (1-5 stars, optional)
 
-    init(title: String, coordinate: CLLocationCoordinate2D, category: PinCategory, photos: [Data] = [], startDate: Date? = nil, endDate: Date? = nil, placesVisited: [String] = [], tripRating: Int? = nil) {
-        self.id = UUID()
+    // MARK: - Initializers
+    init(
+        id: UUID = UUID(),
+        title: String,
+        coordinate: CLLocationCoordinate2D,
+        category: PinCategory,
+        photos: [Data] = [],
+        startDate: Date? = nil,
+        endDate: Date? = nil,
+        placesVisited: [String] = [],
+        tripRating: Int? = nil
+    ) {
+        self.id = id
         self.title = title
         self.coordinate = coordinate
         self.category = category
@@ -35,6 +46,19 @@ struct Pin: Identifiable, Codable {
         self.endDate = endDate
         self.placesVisited = placesVisited
         self.tripRating = tripRating
+    }
+
+    // MARK: - Computed Properties
+    /// Returns the trip duration in days if both start and end dates are available.
+    var tripDuration: Int? {
+        guard let start = startDate, let end = endDate else { return nil }
+        return Calendar.current.dateComponents([.day], from: start, to: end).day
+    }
+
+    /// Returns true if the pin has valid trip dates (start date is before end date).
+    var hasValidTripDates: Bool {
+        guard let start = startDate, let end = endDate else { return false }
+        return start < end
     }
 
     // MARK: - Encoding & Decoding CLLocationCoordinate2D
@@ -48,8 +72,8 @@ struct Pin: Identifiable, Codable {
         title = try container.decode(String.self, forKey: .title)
         let latitude = try container.decode(Double.self, forKey: .latitude)
         let longitude = try container.decode(Double.self, forKey: .longitude)
-        category = try container.decode(PinCategory.self, forKey: .category)
         coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        category = try container.decode(PinCategory.self, forKey: .category)
         photos = try container.decode([Data].self, forKey: .photos)
         startDate = try container.decodeIfPresent(Date.self, forKey: .startDate)
         endDate = try container.decodeIfPresent(Date.self, forKey: .endDate)

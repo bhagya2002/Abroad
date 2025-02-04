@@ -39,7 +39,7 @@ struct MapView: UIViewRepresentable {
             }
 
             DispatchQueue.main.async {
-                let newPin = Pin(title: "New Place", coordinate: coordinate, category: .visited)
+                let newPin = Pin(title: "", coordinate: coordinate, category: .visited)
 
                 print("New pin created: \(newPin.title) at \(newPin.coordinate)")
 

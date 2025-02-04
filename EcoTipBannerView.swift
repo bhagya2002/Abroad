@@ -36,7 +36,7 @@ struct EcoTipBannerView: View {
                     .multilineTextAlignment(.center)
                     .padding()
                     .frame(maxWidth: geo.size.width - 20) // ✅ Full-width, no fixed height
-                    .background(Color.green.opacity(0.8))
+                    .background(Color.gray.opacity(0.8))
                     .foregroundColor(.black) // ✅ Black text for readability
                     .cornerRadius(10)
                     .shadow(radius: 3)

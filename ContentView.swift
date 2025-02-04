@@ -33,8 +33,7 @@ struct ContentView: View {
                     EcoTipBannerView()
                         .frame(maxWidth: .infinity, minHeight: 40, maxHeight: 40)
                         .multilineTextAlignment(.center)
-                        .padding(.vertical, 5)
-                        .background(Color.green.opacity(0.8))
+                        .background(Color.gray.opacity(0.2))
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                 }
                 .frame(height: UIScreen.main.bounds.height * 0.1)
@@ -45,19 +44,19 @@ struct ContentView: View {
                         .edgesIgnoringSafeArea(.all)
                 }
                 .frame(height: UIScreen.main.bounds.height * 0.9)
+                .padding(15)
+                .cornerRadius(10)
             }
             .sheet(isPresented: $isEditingPin, onDismiss: {
                 selectedPin = nil
             }) {
                 if let index = selectedPinIndex(), index < viewModel.pins.count {
-
                     PinEditView(
                         pin: $viewModel.pins[index],
                         isPresented: $isEditingPin,
                         deletePin: {
                             isEditingPin = false
                             selectedPin = nil
-
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                 if index < viewModel.pins.count {
                                     viewModel.pins.remove(at: index)
@@ -66,7 +65,8 @@ struct ContentView: View {
                         }
                     )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .presentationDetents([.fraction(0.5), .large])
+                    .edgesIgnoringSafeArea(.bottom)
+                    .presentationDetents([.fraction(0.5)])
                     .presentationDragIndicator(.visible)
                 } else {
                     Text("⚠️ No pin selected")
