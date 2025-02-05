@@ -32,24 +32,26 @@ struct EcoTipBannerView: View {
         GeometryReader { geo in
             ZStack {
                 Text(ecoTips[currentIndex])
-                    .font(.headline)
+                    .font(.title3) // ✅ Increased font size
+                    .bold()
                     .multilineTextAlignment(.center)
-                    .padding()
-                    .frame(maxWidth: geo.size.width - 20) // ✅ Full-width, no fixed height
-                    .background(Color.gray.opacity(0.8))
+                    .background(Color.clear)
                     .foregroundColor(.black) // ✅ Black text for readability
                     .cornerRadius(10)
                     .shadow(radius: 3)
                     .onAppear {
                         startAutoScroll()
                     }
+                    .multilineTextAlignment(.center)
+                    .frame(maxHeight: .infinity, alignment: .center)
+
             }
             .frame(maxWidth: .infinity) // ✅ Ensures it stretches across the screen
         }
     }
 
     private func startAutoScroll() {
-        Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { _ in
+        Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { _ in
             DispatchQueue.main.async {
                 withAnimation {
                     currentIndex = (currentIndex + 1) % ecoTips.count
