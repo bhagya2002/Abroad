@@ -16,12 +16,16 @@ struct PinEditView: View {
     @State private var imagePickerItems: [PhotosPickerItem] = []
     @State private var startDate: Date = Date()
     @State private var endDate: Date = Date()
+    @State private var titleError: String? = nil
+    @State private var dateError: String? = nil
+
+    @ObservedObject var viewModel: PinsViewModel
     
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: 5) {
                         Text("Location Name")
                             .font(.headline)
                         HStack {
@@ -29,6 +33,13 @@ struct PinEditView: View {
                                 .foregroundColor(.blue)
                             TextField("Enter place name", text: $pin.title)
                                 .padding(.vertical, 8)
+                                .onChange(of: pin.title) { _ in validateFields() }
+                        }
+                        if let titleError = titleError {
+                            Text(titleError)
+                                .font(.footnote)
+                                .foregroundColor(.red)
+                                .padding(.leading, 25) // Align with text field
                         }
                     }
                 }
@@ -37,7 +48,6 @@ struct PinEditView: View {
                     VStack(alignment: .leading) {
                         Text("Category")
                             .font(.headline)
-                            .padding(.bottom)
                         Picker("Category", selection: $pin.category) {
                             Text("Visited").tag(PinCategory.visited)
                             Text("Future Travel Plan").tag(PinCategory.future)
@@ -47,43 +57,22 @@ struct PinEditView: View {
                 }
                 
                 Section {
-                    VStack(alignment: .leading) {
+                    VStack(alignment: .leading, spacing: 5) {
                         Text("Trip Dates")
                             .font(.headline)
                         DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
+                            .onChange(of: startDate) { _ in validateFields() }
                         DatePicker("End Date", selection: $endDate, displayedComponents: .date)
-                            .onChange(of: startDate) { newStart in
-                                pin.startDate = newStart
-                            }
-                            .onChange(of: endDate) { newEnd in
-                                pin.endDate = newEnd
-                            }
-                    }
-                }
-
-                Section {
-                    VStack(alignment: .leading) {
-                        Text("Places Visited")
-                            .font(.headline)
-                            .padding(.bottom)
-                        ForEach($pin.placesVisited.indices, id: \ .self) { index in
-                            HStack {
-                                Image(systemName: "list.bullet")
-                                    .foregroundColor(.blue)
-                                TextField("Enter place name", text: $pin.placesVisited[index])
-                            }
-                        }
-                        .onDelete { indexSet in
-                            pin.placesVisited.remove(atOffsets: indexSet)
-                        }
-                        Button(action: {
-                            pin.placesVisited.append("")
-                        }) {
-                            Label("Add Place", systemImage: "plus")
+                            .onChange(of: endDate) { _ in validateFields() }
+                        if let dateError = dateError {
+                            Text(dateError)
+                                .font(.footnote)
+                                .foregroundColor(.red)
+                                .padding(.leading, 5)
                         }
                     }
                 }
-
+                
                 Section {
                     VStack(alignment: .leading) {
                         Text("Trip Rating")
@@ -106,36 +95,37 @@ struct PinEditView: View {
                         }
                     }
                 }
-
+                
                 Section {
                     VStack(alignment: .leading) {
-                        Text("Attach Photos")
+                        Text("Places Visited")
                             .font(.headline)
                             .padding(.bottom)
-                        PhotosPicker("Select Images", selection: $imagePickerItems, matching: .images)
-                            .onChange(of: imagePickerItems) { newItems in
-                                loadSelectedImages(newItems)
-                            }
-                        ScrollView(.horizontal) {
+                        ForEach($pin.placesVisited.indices, id: \ .self) { index in
                             HStack {
-                                ForEach(selectedImages, id: \ .self) { image in
-                                    Image(uiImage: image)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 80, height: 80)
-                                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                                        .shadow(radius: 2)
-                                }
+                                Image(systemName: "list.bullet")
+                                    .foregroundColor(.blue)
+                                TextField("Enter place name", text: $pin.placesVisited[index])
+                                    .padding(.bottom, 6)
                             }
+                        }
+                        .onDelete { indexSet in
+                            pin.placesVisited.remove(atOffsets: indexSet)
+                        }
+                        Button(action: {
+                            pin.placesVisited.append("")
+                        }) {
+                            Label("Add Place", systemImage: "plus")
                         }
                     }
                 }
-                
+
                 Section {
                     Button(action: {
                         isPresented = false
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             deletePin()
+                            viewModel.savePins() // ✅ Save after deletion
                         }
                     }) {
                         Text("Delete Pin")
@@ -145,37 +135,44 @@ struct PinEditView: View {
                 }
             }
             .formStyle(.grouped)
-            .navigationTitle("Edit Pin Information")
-            .padding(.bottom)
+            .navigationTitle(pin.title.isEmpty ? "New Pin" : "Edit Pin")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        isPresented = false
+                    Button("Save Pin") {
+                        if validateFields() {
+                            isPresented = false
+                            viewModel.savePins() // ✅ Save when closing
+                        }
                     }
+                    .foregroundColor(.blue) // Apple aesthetic
+                    .disabled(!validateFields()) // Disable if fields are invalid
                 }
             }
         }
         .presentationDragIndicator(.visible)
         .onAppear {
             print("PinEditView opened for pin: \(pin.title)")
-            if let pinStart = pin.startDate, let pinEnd = pin.endDate {
+            // ✅ Only set start & end date if they exist in the pin
+            if let pinStart = pin.startDate {
                 startDate = pinStart
+            }
+            if let pinEnd = pin.endDate {
                 endDate = pinEnd
             }
         }
     }
 
-    private func loadSelectedImages(_ newItems: [PhotosPickerItem]) {
-        Task {
-            var newImages: [UIImage] = []
-            for item in newItems {
-                if let data = try? await item.loadTransferable(type: Data.self),
-                   let image = UIImage(data: data) {
-                    newImages.append(image)
-                }
-            }
-            selectedImages = newImages
-            pin.photos = newImages.compactMap { $0.pngData() }
+    private func validateFields() -> Bool {
+        titleError = nil
+        dateError = nil
+
+        if pin.title.trimmingCharacters(in: .whitespaces).isEmpty {
+            titleError = "Location name cannot be empty."
         }
+        if startDate > endDate {
+            dateError = "Start date cannot be after end date."
+        }
+
+        return titleError == nil && dateError == nil
     }
 }
