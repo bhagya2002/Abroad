@@ -30,8 +30,8 @@ class PinsViewModel: ObservableObject {
 
 struct ContentView: View {
     @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
-        span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+        center: CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795), // Centered on North America
+        span: MKCoordinateSpan(latitudeDelta: 30.0, longitudeDelta: 60.0) // Wider view for entire continent
     )
 
     @StateObject private var viewModel = PinsViewModel()
@@ -107,7 +107,7 @@ struct ContentView: View {
                             deletePin: {
                                 isEditingPin = false
                                 selectedPin = nil
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                                     if index < viewModel.pins.count {
                                         viewModel.pins.remove(at: index)
                                     }
@@ -162,6 +162,11 @@ struct ContentView: View {
                                     .font(.subheadline)
                                     .foregroundColor(.black)
                                     .padding(.bottom, 4)
+                            }
+                            if let budget = pin.tripBudget {
+                                Text("💰 Budget: \(budget, format: .currency(code: "USD"))")
+                                    .font(.subheadline)
+                                    .foregroundColor(.black)
                             }
                             if !pin.placesVisited.isEmpty {
                                 Text("📍 Places: " + pin.placesVisited.prefix(3).joined(separator: ", "))
