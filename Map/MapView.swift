@@ -26,10 +26,14 @@ struct MapView: UIViewRepresentable {
             let touchPoint = gestureRecognizer.location(in: mapView)
             let coordinate = mapView.convert(touchPoint, toCoordinateFrom: mapView)
 
+            // Dynamic tap selection threshold based on zoom level
+            let zoomLevel = parent.region.span.latitudeDelta
+            let selectionThreshold = zoomLevel * 0.02 // Adjust threshold dynamically
+
             if let existingPin = parent.pins.first(where: { pin in
                 let distance = hypot(pin.coordinate.latitude - coordinate.latitude,
                                      pin.coordinate.longitude - coordinate.longitude)
-                return distance < 0.001
+                return distance < selectionThreshold
             }) {
                 DispatchQueue.main.async {
                     self.parent.selectedPin = existingPin
