@@ -12,8 +12,8 @@ struct PinEditView: View {
     @Binding var pin: Pin
     @Binding var isPresented: Bool
     var deletePin: () -> Void
-    @State private var startDate: Date = Date()
-    @State private var endDate: Date = Date()
+    @Binding var startDate: Date
+    @Binding var endDate: Date
     @State private var selectedTab: Int = 0
     @ObservedObject var viewModel: PinsViewModel
 
@@ -48,12 +48,21 @@ struct PinEditView: View {
             .formStyle(.grouped)
             .navigationTitle(pin.title.isEmpty ? "New Pin" : "Edit Pin")
             .toolbar {
-                // ✅ Cancel Button on Top Left
+                // ✅ Conditional Cancel or Delete Button on Top Left
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        isPresented = false
+                    if pin.title.isEmpty { // If it's a new pin
+                        Button("Cancel") {
+                            deletePin() // Remove pin from list
+                            isPresented = false
+                        }
+                        .foregroundColor(.red)
+                    } else { // If editing an existing pin
+                        Button("Delete") {
+                            deletePin() // Call delete function
+                            isPresented = false
+                        }
+                        .foregroundColor(.red)
                     }
-                    .foregroundColor(.red)
                 }
                 
                 // ✅ Save Button on Top Right (Inside ButtonView)
@@ -66,6 +75,11 @@ struct PinEditView: View {
         .onAppear {
             if let pinStart = pin.startDate { startDate = pinStart }
             if let pinEnd = pin.endDate { endDate = pinEnd }
+        }
+        .onDisappear {
+            if pin.title.isEmpty && (pin.startDate == nil || pin.startDate == Date()) && (pin.endDate == nil || pin.endDate == Date()) && pin.placesVisited.isEmpty {
+                deletePin() // Automatically delete empty pins
+            }
         }
     }
 }

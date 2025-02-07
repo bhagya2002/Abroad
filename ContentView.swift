@@ -31,7 +31,7 @@ class PinsViewModel: ObservableObject {
 struct ContentView: View {
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795), // Centered on North America
-        span: MKCoordinateSpan(latitudeDelta: 30.0, longitudeDelta: 60.0) // Wider view for entire continent
+        span: MKCoordinateSpan(latitudeDelta: 30.0, longitudeDelta: 60.0) // Wider view
     )
 
     @StateObject private var viewModel = PinsViewModel()
@@ -41,21 +41,18 @@ struct ContentView: View {
 
     var body: some View {
         HStack {
-            // ✅ Sidebar that expands when clicked
+            // ✅ Sidebar integration
             if isSidebarOpen {
-                sidebarView()
-                    .frame(width: UIScreen.main.bounds.width * 0.5)
-                    .background(Color(.systemGray6))
+                SidebarView(viewModel: viewModel, isSidebarOpen: $isSidebarOpen)
                     .transition(.move(edge: .leading))
                     .animation(.easeInOut, value: isSidebarOpen)
             }
 
             VStack(spacing: 0) {
+                // ✅ Top Navigation Bar
                 HStack(spacing: 0) {
                     Button(action: {
-                        withAnimation {
-                            isSidebarOpen.toggle()
-                        }
+                        withAnimation { isSidebarOpen.toggle() }
                     }) {
                         Image(systemName: "sidebar.leading")
                             .resizable()
@@ -78,6 +75,7 @@ struct ContentView: View {
                 .frame(height: UIScreen.main.bounds.height * 0.1)
                 .background(Color(.systemBackground))
 
+                // ✅ Map Section
                 ZStack {
                     MapView(region: $region, pins: $viewModel.pins, selectedPin: $selectedPin, isEditingPin: $isEditingPin)
                         .edgesIgnoringSafeArea(.all)
@@ -95,10 +93,7 @@ struct ContentView: View {
                         Color.black.opacity(0.3) // Background blur effect
                             .edgesIgnoringSafeArea(.all)
                             .onTapGesture {
-                                if !viewModel.pins[index].title.trimmingCharacters(in: .whitespaces).isEmpty {
-                                    isEditingPin = false
-                                    viewModel.savePins() // ✅ Save pins when closing
-                                }
+                                handlePinDismiss(index: index)
                             }
 
                         PinEditView(
@@ -111,9 +106,17 @@ struct ContentView: View {
                                     if index < viewModel.pins.count {
                                         viewModel.pins.remove(at: index)
                                     }
-                                    viewModel.savePins() // ✅ Save pins after deletion
+                                    viewModel.savePins()
                                 }
                             },
+                            startDate: Binding(
+                                get: { viewModel.pins[index].startDate ?? Date() },
+                                set: { viewModel.pins[index].startDate = $0 }
+                            ),
+                            endDate: Binding(
+                                get: { viewModel.pins[index].endDate ?? Date() },
+                                set: { viewModel.pins[index].endDate = $0 }
+                            ),
                             viewModel: viewModel
                         )
                         .frame(width: UIScreen.main.bounds.width * 0.75, height: UIScreen.main.bounds.height * 0.5)
@@ -130,95 +133,24 @@ struct ContentView: View {
 
     private func selectedPinIndex() -> Int? {
         guard let selectedPin = selectedPin else { return nil }
-        let index = viewModel.pins.firstIndex(where: { $0.id == selectedPin.id })
-        return index
+        return viewModel.pins.firstIndex { $0.id == selectedPin.id }
     }
 
-    // ✅ Sidebar view that shows visited & planned trips
-    private func sidebarView() -> some View {
-        VStack(alignment: .leading) {
-            Text("📍 My Travel Logs")
-                .font(.largeTitle)
-                .bold()
-                .padding()
-                .padding(.top, 15)
+    private func handlePinDismiss(index: Int) {
+        let pin = viewModel.pins[index]
+        if pin.title.trimmingCharacters(in: .whitespaces).isEmpty &&
+            pin.startDate == nil &&
+            pin.endDate == nil &&
+            pin.placesVisited.isEmpty {
 
-            List {
-                // ✅ Section for Visited Places
-                Section(header: Text("Visited Locations").font(.headline)) {
-                    ForEach(viewModel.pins.filter { $0.category == .visited }, id: \.id) { pin in
-                        VStack(alignment: .leading) {
-                            Text(pin.title)
-                                .font(.headline)
-                                .padding(.bottom, 4)
-                            if let start = pin.startDate, let end = pin.endDate {
-                                Text("🗓️ \(formattedDate(start)) - \(formattedDate(end))")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                                    .padding(.bottom, 4)
-                            }
-                            if let rating = pin.tripRating {
-                                Text("⭐ Rating: \(rating)/5")
-                                    .font(.subheadline)
-                                    .foregroundColor(.black)
-                                    .padding(.bottom, 4)
-                            }
-                            if let budget = pin.tripBudget {
-                                Text("💰 Budget: \(budget, format: .currency(code: "USD"))")
-                                    .font(.subheadline)
-                                    .foregroundColor(.black)
-                            }
-                            if !pin.placesVisited.isEmpty {
-                                Text("📍 Places: " + pin.placesVisited.prefix(3).joined(separator: ", "))
-                                    .font(.subheadline)
-                                    .foregroundColor(.black)
-                            }
-                        }
-                        .padding(.vertical, 5)
-                    }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                if index < viewModel.pins.count {
+                    viewModel.pins.remove(at: index)
                 }
-
-                // ✅ Section for Future Travel Plans
-                Section(header: Text("Future Travel Plans").font(.headline)) {
-                    ForEach(viewModel.pins.filter { $0.category == .future }, id: \.id) { pin in
-                        VStack(alignment: .leading) {
-                            Text(pin.title)
-                                .font(.headline)
-                                .padding(.bottom, 4)
-                            Text("🗓️ Planned Trip")
-                                .font(.subheadline)
-                                .foregroundColor(.black)
-                        }
-                        .padding(.vertical, 5)
-                    }
-                }
+                viewModel.savePins()
             }
-            .listStyle(InsetGroupedListStyle())
-            .background(Color(.systemBackground))
-
-//            Spacer()
-
-//            Button(action: {
-//                withAnimation {
-//                    isSidebarOpen = false
-//                }
-//            }) {
-//                Text("Close Sidebar")
-//                    .font(.headline)
-//                    .foregroundColor(.blue)
-//                    .padding()
-//            }
-//            .frame(maxWidth: .infinity, alignment: .center)
         }
-        .frame(maxHeight: .infinity)
-        .background(Color(.systemBackground))
-    }
-
-    // ✅ Helper function to format dates
-    private func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter.string(from: date)
+        isEditingPin = false
     }
 }
 
