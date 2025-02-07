@@ -44,12 +44,12 @@ struct FutureTripView: View {
             }
         }
         .onAppear {
-            if pin.startDate == nil {
-                startDate = Date() // ✅ Only set to today if no startDate exists
-            } else {
-                startDate = pin.startDate!
-            }
+            startDate = pin.startDate ?? Date()
+            
             generateEcoTipsForPin()
+        }
+        .onDisappear {
+            pin.startDate = startDate
         }
     }
 

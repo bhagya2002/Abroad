@@ -76,12 +76,16 @@ struct TripDetailsView: View {
         }
         .onAppear {
             // ✅ Only set start & end dates if they are nil, otherwise keep previous values
-            if pin.startDate == nil { startDate = Date() } else { startDate = pin.startDate! }
-            if pin.endDate == nil { endDate = Date() } else { endDate = pin.endDate! }
+            startDate = pin.startDate ?? Date() // Use existing date if available
+            endDate = pin.endDate ?? Date()
 
             if let budget = pin.tripBudget {
                 budgetText = String(format: "%.2f", budget)
             }
+        }
+        .onDisappear {
+            pin.startDate = startDate // Save selected date to pin
+            pin.endDate = endDate
         }
     }
 
