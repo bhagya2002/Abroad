@@ -17,10 +17,10 @@ struct SidebarView: View {
         VStack(alignment: .leading, spacing: 15) {
             // ✅ Sidebar Header
             HStack {
-                Text("🌍 My Travel Insights")
+                Text("My Travel Insights")
                     .font(.largeTitle)
                     .bold()
-                    .padding(.leading, 10)
+                    .padding(.leading, 20)
             }
             .padding(.top, 55)
 
@@ -34,6 +34,14 @@ struct SidebarView: View {
                     createFlightImpactWarning()
                     createGlobalRankView()
                     createMostVisitedPlacesView()
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            Text("📍 Locations Saved: **\(viewModel.pins.count)**")
+                            Text("✈️ Next Trip: **\(viewModel.pins.first(where: { $0.category == .future })?.title ?? "Plan one!")**")
+                            Text("🌱 CO₂ Saved: **\(calculateCarbonSavings()) kg**")
+                        }
+                    }
+                    .padding(.horizontal)
                 }
             }
             .padding(.horizontal)
@@ -178,6 +186,10 @@ struct SidebarView: View {
     }
 
     // MARK: - Helper Functions
+    
+    private func calculateCarbonSavings() -> Double {
+        return viewModel.pins.reduce(0) { $0 + ($1.tripBudget ?? 0) * 0.1 }
+    }
 
     private func getTotalEmissions() -> Double {
         return viewModel.pins.flatMap { $0.transportEntries }

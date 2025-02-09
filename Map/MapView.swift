@@ -58,11 +58,29 @@ struct MapView: UIViewRepresentable {
         }
 
         func mapView(_ mapView: MKMapView, didSelect annotation: MKAnnotation) {
-            if let annotation = annotation as? MKPointAnnotation {
-                if let pin = parent.pins.first(where: { $0.coordinate.latitude == annotation.coordinate.latitude && $0.coordinate.longitude == annotation.coordinate.longitude }) {
-                    DispatchQueue.main.async {
+            guard let annotation = annotation as? MKPointAnnotation else { return }
+
+            if let pin = parent.pins.first(where: {
+                $0.coordinate.latitude == annotation.coordinate.latitude &&
+                $0.coordinate.longitude == annotation.coordinate.longitude
+            }) {
+                DispatchQueue.main.async {
+                    let currentZoom = self.parent.region.span.latitudeDelta
+
+                    if self.parent.selectedPin == pin {
+                        if currentZoom < 0.1 { // ✅ Increased threshold to 0.1 for more zoom
+                            // ✅ Second tap opens PinEditView (Only if already zoomed in)
+                            self.parent.isEditingPin = true
+                        } else {
+                            self.parent.isEditingPin = false
+                        }
+                    } else {
+                        // ✅ First tap zooms in more aggressively
                         self.parent.selectedPin = pin
-                        self.parent.isEditingPin = true
+                        self.parent.region = MKCoordinateRegion(
+                            center: pin.coordinate,
+                            span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002) // ✅ More zoom-in effect
+                        )
                     }
                 }
             }
@@ -115,6 +133,13 @@ struct MapView: UIViewRepresentable {
             return annotation
         }
         uiView.addAnnotations(annotations)
+
+        // Update the visible region
+        if uiView.region.center.latitude != region.center.latitude ||
+            uiView.region.center.longitude != region.center.longitude {
+            uiView.setRegion(region, animated: true)
+        }
     }
+
 }
 

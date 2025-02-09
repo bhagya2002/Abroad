@@ -52,31 +52,34 @@ struct MeasureFootprintView: View {
             ScrollView {
                 VStack(spacing: 15) {
                     ForEach($pin.transportEntries) { $entry in
-                        HStack {
-                            Picker("Mode", selection: $entry.mode) {
+                        HStack(spacing: 12) {
+                            // ✅ Mode Picker (Minimalist & Apple-like)
+                            Picker("", selection: $entry.mode) {
                                 ForEach(transportOptions, id: \.self) { mode in
                                     Text(mode)
                                 }
                             }
                             .pickerStyle(MenuPickerStyle())
-                            .frame(width: 140)
+                            .frame(width: 120)
 
+                            // ✅ Refined Distance Input Field
                             TextField("Distance (km)", text: $entry.distance)
                                 .keyboardType(.decimalPad)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .frame(width: 100)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
+                                .background(Color(.systemGray6)) // ✅ Better contrast, matches iOS
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                                .frame(maxWidth: .infinity, alignment: .leading)
                                 .onChange(of: entry.distance) { _ in
                                     savePinData()
                                 }
 
+                            // ✅ Simple Delete Button (No Extra Padding)
                             Button(action: { removeEntry(entry) }) {
-                                Image(systemName: "trash")
+                                Image(systemName: "minus.circle.fill")
                                     .foregroundColor(.red)
-                                    .padding(8)
-                                    .clipShape(RoundedRectangle(cornerRadius: 6))
                             }
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal)
                     }
 
@@ -86,8 +89,9 @@ struct MeasureFootprintView: View {
                         savePinData()
                     }) {
                         Label("Add Transport", systemImage: "plus.circle")
+                            .font(.headline)
+                            .foregroundColor(.blue)
                     }
-                    .buttonStyle(.borderedProminent)
                     .padding(.vertical, 10)
                 }
                 .frame(maxWidth: .infinity)
@@ -101,9 +105,13 @@ struct MeasureFootprintView: View {
                 showChart = true
             }) {
                 Text("Calculate Footprint")
+                    .font(.headline)
                     .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
             }
-            .buttonStyle(.borderedProminent)
             .padding(.horizontal)
 
             if showChart {

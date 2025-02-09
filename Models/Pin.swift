@@ -19,7 +19,7 @@ enum PinCategory: String, Codable, CaseIterable {
     case future = "Bucket List"
 }
 
-struct Pin: Identifiable, Codable {
+struct Pin: Identifiable, Codable, Equatable {
     let id: UUID
     var title: String
     var coordinate: CLLocationCoordinate2D
@@ -36,10 +36,17 @@ struct Pin: Identifiable, Codable {
     // ✅ Travel Data
     var transportEntries: [TransportEntry]
     
+    var icon: String = "📍"
+    
     // ✅ Sustainability & Packing List
     var ecoTips: [String]
     var packingList: [String]
     var ecoRegion: String?
+    
+    // ✅ Custom Equatable Implementation (Required for Comparing Pins)
+    static func == (lhs: Pin, rhs: Pin) -> Bool {
+        return lhs.id == rhs.id // Compare by unique ID
+    }
 
     // MARK: - Initializers
     init(
@@ -56,7 +63,8 @@ struct Pin: Identifiable, Codable {
         ecoTips: [String] = [],
         packingList: [String] = [],
         imageFilenames: [String] = [],
-        transportEntries: [TransportEntry] = []
+        transportEntries: [TransportEntry] = [],
+        icon: String = ""
     ) {
         self.id = id
         self.title = title
@@ -72,6 +80,7 @@ struct Pin: Identifiable, Codable {
         self.packingList = packingList
         self.imageFilenames = imageFilenames
         self.transportEntries = transportEntries
+        self.icon = icon
     }
 
     // MARK: - Computed Properties
@@ -87,7 +96,7 @@ struct Pin: Identifiable, Codable {
 
     // MARK: - Encoding & Decoding CLLocationCoordinate2D
     enum CodingKeys: String, CodingKey {
-        case id, title, latitude, longitude, category, startDate, endDate, placesVisited, tripRating, tripBudget
+        case id, title, latitude, longitude, category, startDate, endDate, placesVisited, tripRating, tripBudget, icon
         case ecoRegion, ecoTips, packingList, imageFilenames, transportEntries
     }
 
@@ -109,6 +118,7 @@ struct Pin: Identifiable, Codable {
         packingList = try container.decodeIfPresent([String].self, forKey: .packingList) ?? []
         imageFilenames = try container.decodeIfPresent([String].self, forKey: .imageFilenames) ?? []
         transportEntries = try container.decodeIfPresent([TransportEntry].self, forKey: .transportEntries) ?? []
+        icon = try container.decode(String.self, forKey: .icon)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -128,5 +138,6 @@ struct Pin: Identifiable, Codable {
         try container.encode(packingList, forKey: .packingList)
         try container.encode(imageFilenames, forKey: .imageFilenames)
         try container.encode(transportEntries, forKey: .transportEntries)
+        try container.encode(icon, forKey: .icon)
     }
 }

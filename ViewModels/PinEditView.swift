@@ -31,6 +31,15 @@ struct PinEditView: View {
         NavigationStack {
             Form {
                 TitleInputView(pin: $pin)
+//                Section(header: Text("📍 Choose a Pin Icon")) {
+//                    Picker("Select Icon", selection: $pin.icon) {
+//                        ForEach(["📍", "🏔", "🏖", "🏙", "🎢", "🌲", "🗽", "star", "mappin"], id: \.self) { icon in
+//                            Text(icon).tag(icon)
+//                        }
+//                    }
+//                    .pickerStyle(MenuPickerStyle())
+//                }
+
                 CategoryPickerView(selectedCategory: $pin.category)
 
                 if pin.category == .visited {
@@ -52,46 +61,63 @@ struct PinEditView: View {
                     FutureTripView(pin: $pin, startDate: $startDate)
                 }
                 
-                // ✅ NEW: Photo Upload Section
-                Section(header: Text("📸 Add Photos (Max 10)")) {
-                    PhotosPicker(selection: $photoPickerItems, maxSelectionCount: 10 - pin.imageFilenames.count, matching: .images) {
-                        HStack {
-                            Image(systemName: "photo.on.rectangle")
-                            Text("Select Photos")
-                        }
-                    }
-                    .onChange(of: photoPickerItems) { _ in
-                        Task {
-                            await loadSelectedImages()
-                        }
-                    }
-                    
-                    ScrollView(.horizontal) {
-                        HStack {
+                // Photo Upload Section
+                // ✅ Photo Upload Section
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Add Photos")
+                        .font(.headline)
+
+                    // ✅ Photo Gallery (Apple-Like Horizontal Scroll)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
                             ForEach(Array(selectedImages.enumerated()), id: \.element) { index, image in
-                                VStack {
+                                ZStack(alignment: .topTrailing) {
                                     Image(uiImage: image)
                                         .resizable()
-                                        .scaledToFit()
-                                        .frame(height: 80)
+                                        .scaledToFill()
+                                        .frame(width: 80, height: 80)
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        .shadow(radius: 1)
                                         .onTapGesture {
-                                            showingFullScreenImage = IdentifiableImage(image: image) // ✅ Fix
+                                            showingFullScreenImage = IdentifiableImage(image: image) // ✅ Tap to fullscreen
                                         }
 
+                                    // ✅ Apple-Like Delete Button (Subtle, Inline)
                                     Button(action: {
-                                        Task {
-                                            await deleteImage(at: index)
-                                        }
+                                        Task { await deleteImage(at: index) }
                                     }) {
-                                        Image(systemName: "trash")
-                                            .foregroundColor(.red)
+                                        Image(systemName: "xmark.circle.fill")
+                                            .resizable()
+                                            .frame(width: 18, height: 18)
+                                            .foregroundColor(.white)
+                                            .background(Color.black.opacity(0.6))
+                                            .clipShape(Circle())
                                     }
+                                    .offset(x: 5, y: -5)
                                 }
                             }
                         }
                     }
+                    .padding(.horizontal)
+
+                    // ✅ Apple-Like Photos Picker (No Highlighting)
+                    PhotosPicker(selection: $photoPickerItems, maxSelectionCount: 10 - pin.imageFilenames.count, matching: .images) {
+                        HStack {
+                            Image(systemName: "plus")
+                            Text("Select Photos")
+                        }
+                        .foregroundColor(.primary)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color(UIColor.systemBackground))) // ✅ No Highlighting Effect
+                    }
+                    .padding(.horizontal)
+                    .onChange(of: photoPickerItems) { _ in
+                        Task { await loadSelectedImages() }
+                    }
                 }
+                .padding()
+                .background(RoundedRectangle(cornerRadius: 5).fill(Color(UIColor.systemBackground)))
+
 
                 DeleteButtonView(isPresented: $isPresented, deletePin: deletePin, viewModel: viewModel)
             }
@@ -183,8 +209,54 @@ struct ImageViewer: View {
                 .resizable()
                 .scaledToFit()
                 .onTapGesture {
-                    dismiss() // ✅ Correct way to dismiss in iOS 15+
-                }
+                dismiss() // ✅ Tap anywhere to dismiss
+            }
         }
     }
 }
+
+extension PinsViewModel {
+    func filteredPins(searchText: String) -> [Pin] {
+        guard !searchText.isEmpty else { return [] }
+
+        return pins.filter { pin in
+            let lowercaseText = searchText.lowercased()
+
+            // ✅ Match by Title
+            if pin.title.lowercased().contains(lowercaseText) {
+                return true
+            }
+
+            // ✅ Match by Rating (e.g., "Rating = 4")
+            if lowercaseText.starts(with: "rating ="),
+               let ratingValue = Int(lowercaseText.replacingOccurrences(of: "rating =", with: "").trimmingCharacters(in: .whitespaces)),
+               pin.tripRating == ratingValue {
+                return true
+            }
+
+            // ✅ Match by Category
+            if pin.category.rawValue.lowercased().contains(lowercaseText) {
+                return true
+            }
+
+            // ✅ Match by Date (Formatted Search)
+            if let startDate = pin.startDate {
+                let formatter = DateFormatter()
+                formatter.dateStyle = .medium
+                if formatter.string(from: startDate).localizedCaseInsensitiveContains(searchText) {
+                    return true
+                }
+            }
+
+            // ✅ Match by Emissions (e.g., "Emissions < 100")
+            if lowercaseText.starts(with: "emissions <"),
+               let emissionsValue = Double(lowercaseText.replacingOccurrences(of: "emissions <", with: "").trimmingCharacters(in: .whitespaces)),
+               (pin.tripBudget ?? 0) < emissionsValue {
+                return true
+            }
+
+            return false
+        }
+    }
+}
+
