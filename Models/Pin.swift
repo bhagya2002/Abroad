@@ -7,7 +7,6 @@
 
 import Foundation
 import CoreLocation
-import UIKit
 
 struct TransportEntry: Identifiable, Codable {
     let id: UUID
@@ -31,20 +30,23 @@ struct Pin: Identifiable, Codable {
     var tripRating: Int?
     var tripBudget: Double?
     
-    // ✅ Now each pin has its own transport data
-    var transportEntries: [TransportEntry] = []
-
-    // ✅ Stores the pre-selected sustainable travel tips & packing list
-    var ecoTips: [String] = []
-    var packingList: [String] = []
-    var ecoRegion: String?  // ✅ Stores the region name for consistency
+    // ✅ Image Persistence
+    var imageFilenames: [String]
+    
+    // ✅ Travel Data
+    var transportEntries: [TransportEntry]
+    
+    // ✅ Sustainability & Packing List
+    var ecoTips: [String]
+    var packingList: [String]
+    var ecoRegion: String?
 
     // MARK: - Initializers
     init(
         id: UUID = UUID(),
-        title: String,
-        coordinate: CLLocationCoordinate2D,
-        category: PinCategory,
+        title: String = "",
+        coordinate: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: 0, longitude: 0),
+        category: PinCategory = .visited,
         startDate: Date? = nil,
         endDate: Date? = nil,
         placesVisited: [String] = [],
@@ -52,7 +54,9 @@ struct Pin: Identifiable, Codable {
         tripBudget: Double? = nil,
         ecoRegion: String? = nil,
         ecoTips: [String] = [],
-        packingList: [String] = []
+        packingList: [String] = [],
+        imageFilenames: [String] = [],
+        transportEntries: [TransportEntry] = []
     ) {
         self.id = id
         self.title = title
@@ -66,6 +70,8 @@ struct Pin: Identifiable, Codable {
         self.ecoRegion = ecoRegion
         self.ecoTips = ecoTips
         self.packingList = packingList
+        self.imageFilenames = imageFilenames
+        self.transportEntries = transportEntries
     }
 
     // MARK: - Computed Properties
@@ -81,7 +87,8 @@ struct Pin: Identifiable, Codable {
 
     // MARK: - Encoding & Decoding CLLocationCoordinate2D
     enum CodingKeys: String, CodingKey {
-        case id, title, latitude, longitude, category, startDate, endDate, placesVisited, tripRating, tripBudget, ecoRegion, ecoTips, packingList
+        case id, title, latitude, longitude, category, startDate, endDate, placesVisited, tripRating, tripBudget
+        case ecoRegion, ecoTips, packingList, imageFilenames, transportEntries
     }
 
     init(from decoder: Decoder) throws {
@@ -97,9 +104,11 @@ struct Pin: Identifiable, Codable {
         placesVisited = try container.decodeIfPresent([String].self, forKey: .placesVisited) ?? []
         tripRating = try container.decodeIfPresent(Int.self, forKey: .tripRating)
         tripBudget = try container.decodeIfPresent(Double.self, forKey: .tripBudget)
-        ecoRegion = try container.decodeIfPresent(String.self, forKey: .ecoRegion) // ✅ Decode region
+        ecoRegion = try container.decodeIfPresent(String.self, forKey: .ecoRegion)
         ecoTips = try container.decodeIfPresent([String].self, forKey: .ecoTips) ?? []
         packingList = try container.decodeIfPresent([String].self, forKey: .packingList) ?? []
+        imageFilenames = try container.decodeIfPresent([String].self, forKey: .imageFilenames) ?? []
+        transportEntries = try container.decodeIfPresent([TransportEntry].self, forKey: .transportEntries) ?? []
     }
 
     func encode(to encoder: Encoder) throws {
@@ -114,8 +123,10 @@ struct Pin: Identifiable, Codable {
         try container.encode(placesVisited, forKey: .placesVisited)
         try container.encodeIfPresent(tripRating, forKey: .tripRating)
         try container.encodeIfPresent(tripBudget, forKey: .tripBudget)
-        try container.encodeIfPresent(ecoRegion, forKey: .ecoRegion) // ✅ Encode region
+        try container.encodeIfPresent(ecoRegion, forKey: .ecoRegion)
         try container.encode(ecoTips, forKey: .ecoTips)
         try container.encode(packingList, forKey: .packingList)
+        try container.encode(imageFilenames, forKey: .imageFilenames)
+        try container.encode(transportEntries, forKey: .transportEntries)
     }
 }

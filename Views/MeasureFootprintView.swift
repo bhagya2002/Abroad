@@ -87,7 +87,7 @@ struct MeasureFootprintView: View {
                     }) {
                         Label("Add Transport", systemImage: "plus.circle")
                     }
-                    .buttonStyle(.borderedProminent) // ✅ Matches Apple’s UI style
+                    .buttonStyle(.borderedProminent)
                     .padding(.vertical, 10)
                 }
                 .frame(maxWidth: .infinity)
@@ -118,16 +118,15 @@ struct MeasureFootprintView: View {
                             .font(.title3)
                             .foregroundColor(totalEmissions > 500 ? .red : totalEmissions > 100 ? .orange : .green)
 
-                        if totalEmissions > 500 {
-                            Text("🛑 High emissions! Consider using trains instead of flights.")
-                                .foregroundColor(.gray)
-                        } else if totalEmissions > 100 {
-                            Text("🚆 Switching to trains could significantly lower your footprint.")
-                                .foregroundColor(.gray)
-                        } else {
-                            Text("✅ Great job! Your trip is eco-friendly.")
-                                .foregroundColor(.green)
-                        }
+                        Text(totalEmissions > 500 ?
+                            "🛑 High emissions! Consider using trains instead of flights." :
+                            totalEmissions > 100 ?
+                            "🚆 Switching to trains could significantly lower your footprint." :
+                            "✅ Great job! Your trip is eco-friendly."
+                        )
+                        .foregroundColor(.gray)
+                        .lineLimit(nil)
+                        .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -141,6 +140,7 @@ struct MeasureFootprintView: View {
                             Text("If you chose a **train instead of a flight**, you would save **\(String(format: "%.1f", projectedSavings)) kg CO₂!**")
                                 .multilineTextAlignment(.leading)
                                 .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -161,7 +161,11 @@ struct MeasureFootprintView: View {
                         Text("🌱 Real-World Impact")
                             .font(.headline)
                         Text("🌳 Your carbon savings equal **planting \(Int(totalEmissions / 20)) trees!**")
+                            .lineLimit(nil)
+                            .fixedSize(horizontal: false, vertical: true)
                         Text("🚗 Equivalent to **removing \(Int(totalEmissions / 2)) cars from the road for a day!**")
+                            .lineLimit(nil)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -193,8 +197,6 @@ struct MeasureFootprintView: View {
                let currentEmission = CarbonEmissionFactors.emissionsPerKm[entry.mode] {
                 if entry.mode == "Plane ✈️", let trainEmission = CarbonEmissionFactors.emissionsPerKm["Train 🚆"] {
                     projectedSavings += (currentEmission - trainEmission) * distanceValue
-                } else if entry.mode == "Car 🚗", let busEmission = CarbonEmissionFactors.emissionsPerKm["Bus 🚌"] {
-                    projectedSavings += (currentEmission - busEmission) * distanceValue
                 }
             }
         }
