@@ -12,75 +12,126 @@ struct JournalModalView: View {
     @Binding var isPresented: Bool
     @State private var journalTitle: String = ""
     @State private var journalEntry: String = ""
-    @State private var entryDate: String = ""
+    @State private var entryDate: Date = Date()
+    @State private var savedEntries: [JournalEntry] = []
+    @State private var selectedEntry: JournalEntry?
 
     var body: some View {
         ZStack {
-            // Background Blur Effect
+            // ✅ Background Blur Effect (Matches Spotlight Search)
             Color.black.opacity(0.3)
-                .edgesIgnoringSafeArea(.all)
+                .ignoresSafeArea()
                 .onTapGesture {
-                    withAnimation {
-                        isPresented = false
-                    }
+                    closeJournal()
                 }
 
-            // Modal Content
-            VStack(spacing: 20) {
-                // Header
+            Rectangle()
+                .fill(Material.ultraThinMaterial)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // ✅ Header with Dark Background
                 HStack {
-                    Text("Travel Journal")
+                    Text("📖 Travel Journal")
                         .font(.title)
                         .bold()
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
 
                     Spacer()
 
-                    // Close Button
                     Button(action: {
-                        withAnimation {
-                            isPresented = false
-                        }
+                        closeJournal()
                     }) {
                         Image(systemName: "xmark.circle.fill")
                             .resizable()
-                            .frame(width: 30, height: 30)
+                            .frame(width: 20, height: 20) // ✅ Smaller X button
                             .foregroundColor(.gray)
                     }
                 }
-                .padding(.horizontal)
-                .padding(.top)
+                .padding()
+                .background(Color.black.opacity(0.9))
 
-                // Date Display
-                Text(entryDate)
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
+                Divider()
+                    .background(Color.white.opacity(0.2))
+                    .padding(.horizontal, 10)
 
-                // Title Input
-                TextField("Journal Title", text: $journalTitle)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
+                ScrollView {
+                    VStack(spacing: 15) {
+                        // ✅ Compact Date Selector (Inline)
+                        HStack {
+                            Text("📅 Date:")
+                                .font(.headline)
+                                .foregroundColor(.gray)
+                            Spacer()
+                            DatePicker("", selection: $entryDate, displayedComponents: .date)
+                                .labelsHidden()
+                                .datePickerStyle(CompactDatePickerStyle()) // ✅ Compact Picker
+                        }
+                        .padding()
+                        .background(Color.black.opacity(0.9)) // ✅ Dark Gray Background
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .padding(.horizontal)
+
+                        // ✅ Title Input (Matches Spotlight Style)
+                        TextField("Journal Title", text: $journalTitle)
+                            .padding()
+                            .background(Color.black.opacity(0.9)) // ✅ Dark Gray Background
+                            .foregroundColor(Color.white.opacity(0.8))
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+
+                        // ✅ Journal Text Entry (Matches Spotlight Style)
+                        TextEditor(text: $journalEntry)
+                            .frame(minHeight: 250, maxHeight: 350)
+                            .padding()
+                            .background(Color.black.opacity(0.9)) // ✅ Dark Gray Background
+                            .foregroundColor(.black)
+                            .cornerRadius(12)
+                            .padding(.horizontal)
+
+                        Spacer()
+
+                        // ✅ Saved Journal Entries List
+                        if !savedEntries.isEmpty {
+                            VStack(alignment: .leading) {
+                                Text("📜 Previous Entries")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding(.bottom, 5)
+
+                                ScrollView {
+                                    ForEach(savedEntries) { entry in
+                                        Button(action: {
+                                            loadEntry(entry)
+                                        }) {
+                                            HStack {
+                                                Text(entry.title.isEmpty ? "Untitled Entry" : entry.title)
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.white)
+                                                Spacer()
+                                                Text(formatDate(entry.date))
+                                                    .foregroundColor(.gray)
+                                            }
+                                            .padding()
+                                            .background(Color.black.opacity(0.9)) // ✅ Dark Gray Background
+                                            .cornerRadius(10)
+                                        }
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
+                        }
+                    }
                     .padding(.horizontal)
+                }
 
-                // Journal Text Entry
-                TextEditor(text: $journalEntry)
-                    .frame(height: 250)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(12)
-                    .padding(.horizontal)
-
-                Spacer()
-
-                // Save Button
+                // ✅ Save Button
                 Button(action: {
                     saveJournalEntry()
-                    withAnimation {
-                        isPresented = false
-                    }
+                    closeJournal()
                 }) {
-                    Text("Save Entry")
+                    Text("💾 Save Entry")
                         .bold()
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -90,44 +141,69 @@ struct JournalModalView: View {
                         .shadow(radius: 5)
                 }
                 .padding(.horizontal)
-                .padding(.bottom)
+                .padding(.bottom, 15)
             }
-            .frame(width: UIScreen.main.bounds.width * 0.85)
-            .background(.ultraThinMaterial)
+            .frame(width: UIScreen.main.bounds.width * 0.85, height: UIScreen.main.bounds.height * 0.85)
+            .background(Color.black.opacity(0.9))
             .cornerRadius(20)
             .shadow(radius: 10)
+            .transition(.move(edge: .bottom)) // ✅ Close animation
             .onAppear {
-                loadJournalEntry()
-                entryDate = formatDate(Date())
+                loadJournalEntries()
             }
         }
     }
 
-    // Save Journal Entry
+    // ✅ Save Journal Entry
     private func saveJournalEntry() {
-        let entryData: [String: String] = [
-            "title": journalTitle,
-            "entry": journalEntry,
-            "date": entryDate
-        ]
-        UserDefaults.standard.set(entryData, forKey: "journalEntry")
+        let newEntry = JournalEntry(title: journalTitle, entry: journalEntry, date: entryDate)
+        savedEntries.append(newEntry)
+        saveJournalEntries()
     }
 
-    // Load Journal Entry
-    private func loadJournalEntry() {
-        if let savedData = UserDefaults.standard.dictionary(forKey: "journalEntry") as? [String: String] {
-            journalTitle = savedData["title"] ?? ""
-            journalEntry = savedData["entry"] ?? ""
-            entryDate = savedData["date"] ?? ""
+    // ✅ Load Journal Entries
+    private func loadJournalEntries() {
+        if let data = UserDefaults.standard.data(forKey: "journalEntries"),
+           let decoded = try? JSONDecoder().decode([JournalEntry].self, from: data) {
+            savedEntries = decoded
         }
     }
 
-    // Format Date
+    // ✅ Save All Journal Entries
+    private func saveJournalEntries() {
+        if let encoded = try? JSONEncoder().encode(savedEntries) {
+            UserDefaults.standard.set(encoded, forKey: "journalEntries")
+        }
+    }
+
+    // ✅ Load Selected Entry
+    private func loadEntry(_ entry: JournalEntry) {
+        journalTitle = entry.title
+        journalEntry = entry.entry
+        entryDate = entry.date
+    }
+
+    // ✅ Close Journal with Animation
+    private func closeJournal() {
+        withAnimation {
+            isPresented = false
+        }
+    }
+
+    // ✅ Format Date
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         return formatter.string(from: date)
     }
+}
+
+// ✅ Journal Entry Model
+struct JournalEntry: Identifiable, Codable {
+    var id = UUID()
+    var title: String
+    var entry: String
+    var date: Date
 }
 
 #Preview {
