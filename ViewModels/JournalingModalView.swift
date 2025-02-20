@@ -5,7 +5,6 @@
 //  Created by Bhagya Patel on 2025-02-18.
 //
 
-
 import SwiftUI
 
 struct JournalModalView: View {
@@ -18,12 +17,9 @@ struct JournalModalView: View {
 
     var body: some View {
         ZStack {
-            // ✅ Background Blur Effect (Matches Spotlight Search)
             Color.black.opacity(0.3)
                 .ignoresSafeArea()
-                .onTapGesture {
-                    closeJournal()
-                }
+                .onTapGesture { closeJournal() }
 
             Rectangle()
                 .fill(Material.ultraThinMaterial)
@@ -31,21 +27,18 @@ struct JournalModalView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // ✅ Header with Dark Background
                 HStack {
-                    Text("📖 Travel Journal")
+                    Text("Travel Journal")
                         .font(.title)
                         .bold()
                         .foregroundColor(.white)
-
+                    
                     Spacer()
 
-                    Button(action: {
-                        closeJournal()
-                    }) {
+                    Button(action: { closeJournal() }) {
                         Image(systemName: "xmark.circle.fill")
                             .resizable()
-                            .frame(width: 20, height: 20) // ✅ Smaller X button
+                            .frame(width: 20, height: 20)
                             .foregroundColor(.gray)
                     }
                 }
@@ -55,45 +48,57 @@ struct JournalModalView: View {
                 Divider()
                     .background(Color.white.opacity(0.2))
                     .padding(.horizontal, 10)
+                    .padding(.bottom, 10)
+
+                Spacer()
 
                 ScrollView {
                     VStack(spacing: 15) {
-                        // ✅ Compact Date Selector (Inline)
-                        HStack {
-                            Text("📅 Date:")
+                        
+                        VStack(alignment: .leading) {
+                            HStack {
+                                Text("Date")
+                                    .font(.headline)
+                                    .foregroundColor(.black)
+
+                                DatePicker("", selection: $entryDate, displayedComponents: .date)
+                                    .labelsHidden()
+                                    .datePickerStyle(CompactDatePickerStyle())
+                                    .accentColor(.black)
+                            }
+                            .background(Color.white)
+                            .cornerRadius(10)
+                            .padding(.bottom, 10)
+
+                            Text("Journal Title")
                                 .font(.headline)
-                                .foregroundColor(.gray)
-                            Spacer()
-                            DatePicker("", selection: $entryDate, displayedComponents: .date)
-                                .labelsHidden()
-                                .datePickerStyle(CompactDatePickerStyle()) // ✅ Compact Picker
+                                .foregroundColor(.black)
+
+                            TextField("Enter title...", text: $journalTitle)
+                                .padding()
+                                .background(Color(.systemGray5))
+                                .foregroundColor(.black)
+                                .cornerRadius(10)
+
+                            Text("Description")
+                                .font(.headline)
+                                .foregroundColor(.black)
+
+                            TextField("Enter description...", text: $journalEntry)
+                                .padding()
+                                .frame(minHeight: 100)
+                                .background(Color(.systemGray5))
+                                .foregroundColor(.black)
+                                .cornerRadius(10)
                         }
                         .padding()
-                        .background(Color.black.opacity(0.9)) // ✅ Dark Gray Background
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .background(Color.white)
+                        .cornerRadius(12)
                         .padding(.horizontal)
 
-                        // ✅ Title Input (Matches Spotlight Style)
-                        TextField("Journal Title", text: $journalTitle)
-                            .padding()
-                            .background(Color.black.opacity(0.9)) // ✅ Dark Gray Background
-                            .foregroundColor(Color.white.opacity(0.8))
-                            .cornerRadius(10)
-                            .padding(.horizontal)
-
-                        // ✅ Journal Text Entry (Matches Spotlight Style)
-                        TextEditor(text: $journalEntry)
-                            .frame(minHeight: 250, maxHeight: 350)
-                            .padding()
-                            .background(Color.black.opacity(0.9)) // ✅ Dark Gray Background
-                            .foregroundColor(.black)
-                            .cornerRadius(12)
-                            .padding(.horizontal)
-
-                        Spacer()
-
-                        // ✅ Saved Journal Entries List
                         if !savedEntries.isEmpty {
+                            Spacer()
+                            
                             VStack(alignment: .leading) {
                                 Text("📜 Previous Entries")
                                     .font(.headline)
@@ -102,19 +107,17 @@ struct JournalModalView: View {
 
                                 ScrollView {
                                     ForEach(savedEntries) { entry in
-                                        Button(action: {
-                                            loadEntry(entry)
-                                        }) {
-                                            HStack {
+                                        Button(action: { loadEntry(entry) }) {
+                                            VStack(alignment: .leading) {
                                                 Text(entry.title.isEmpty ? "Untitled Entry" : entry.title)
-                                                    .font(.subheadline)
+                                                    .font(.headline)
                                                     .foregroundColor(.white)
-                                                Spacer()
                                                 Text(formatDate(entry.date))
                                                     .foregroundColor(.gray)
                                             }
                                             .padding()
-                                            .background(Color.black.opacity(0.9)) // ✅ Dark Gray Background
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .background(Color.black.opacity(0.9))
                                             .cornerRadius(10)
                                         }
                                     }
@@ -126,12 +129,11 @@ struct JournalModalView: View {
                     .padding(.horizontal)
                 }
 
-                // ✅ Save Button
                 Button(action: {
                     saveJournalEntry()
                     closeJournal()
                 }) {
-                    Text("💾 Save Entry")
+                    Text("Save Entry")
                         .bold()
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -143,25 +145,21 @@ struct JournalModalView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 15)
             }
-            .frame(width: UIScreen.main.bounds.width * 0.85, height: UIScreen.main.bounds.height * 0.85)
-            .background(Color.black.opacity(0.9))
+            .frame(width: UIScreen.main.bounds.width * 0.85, height: UIScreen.main.bounds.height * 0.65)
+            .background(Color.black.opacity(0.7))
             .cornerRadius(20)
             .shadow(radius: 10)
-            .transition(.move(edge: .bottom)) // ✅ Close animation
-            .onAppear {
-                loadJournalEntries()
-            }
+            .transition(.opacity)
+            .onAppear { loadJournalEntries() }
         }
     }
 
-    // ✅ Save Journal Entry
     private func saveJournalEntry() {
         let newEntry = JournalEntry(title: journalTitle, entry: journalEntry, date: entryDate)
         savedEntries.append(newEntry)
         saveJournalEntries()
     }
 
-    // ✅ Load Journal Entries
     private func loadJournalEntries() {
         if let data = UserDefaults.standard.data(forKey: "journalEntries"),
            let decoded = try? JSONDecoder().decode([JournalEntry].self, from: data) {
@@ -169,28 +167,24 @@ struct JournalModalView: View {
         }
     }
 
-    // ✅ Save All Journal Entries
     private func saveJournalEntries() {
         if let encoded = try? JSONEncoder().encode(savedEntries) {
             UserDefaults.standard.set(encoded, forKey: "journalEntries")
         }
     }
 
-    // ✅ Load Selected Entry
     private func loadEntry(_ entry: JournalEntry) {
         journalTitle = entry.title
         journalEntry = entry.entry
         entryDate = entry.date
     }
 
-    // ✅ Close Journal with Animation
     private func closeJournal() {
-        withAnimation {
+        withAnimation(.easeOut(duration: 0.3)) {
             isPresented = false
         }
     }
 
-    // ✅ Format Date
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -198,7 +192,6 @@ struct JournalModalView: View {
     }
 }
 
-// ✅ Journal Entry Model
 struct JournalEntry: Identifiable, Codable {
     var id = UUID()
     var title: String

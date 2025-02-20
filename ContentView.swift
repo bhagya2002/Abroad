@@ -63,58 +63,56 @@ struct ContentView: View {
                 }
 
                 VStack(spacing: 0) {
-                    // Navigation Bar
                     HStack(spacing: 0) {
-                        Button(action: {
-                            withAnimation {
-                                isSidebarPresented = true // Open Sidebar Modal
-                            }
-                        }) {
-                            Image(systemName: "sidebar.leading")
-                                .resizable()
-                                .frame(width: 30, height: 30)
-                                .padding(6)
-                                .foregroundColor(.black)
-                        }
-                        .padding(.leading, 10)
-
-                        Spacer()
-
-                        // ML Feature Icons & Abroad Title
-                        HStack(spacing: 10) {
-                            Button(action: {
-                                    isJournalingPresented.toggle()
-                                }) {
-                                    Image(systemName: "book.closed")
-                                        .resizable()
-                                        .frame(width: 30, height: 30)
-                                        .foregroundColor(.black)
-                                }
-
-                            Text("Abroad")
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Welcome to Abroad")
                                 .font(.title) // Increased text size
                                 .bold()
                                 .foregroundColor(.black)
 
-                            Image(systemName: "photo.on.rectangle")
+                            Text("Pin your travels, reduce your footprint")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
                         }
+                        .padding(.leading, 20)
 
                         Spacer()
 
-                        // Spotlight Search Button
-                        Button(action: {
-                            withAnimation {
-                                isSpotlightPresented = true
+                        HStack(spacing: 20) {
+                            Button(action: {
+                                withAnimation {
+                                    isSidebarPresented = true // Open Sidebar Modal
+                                }
+                            }) {
+                                Image(systemName: "chart.bar.doc.horizontal")
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                                    .foregroundColor(.black)
                             }
-                        }) {
-                            Image(systemName: "magnifyingglass")
-                                .resizable()
-                                .frame(width: 30, height: 30)
-                                .foregroundColor(.black)
-                                .padding(8)
-                                .clipShape(Circle())
-                                .padding(.horizontal, 15)
+
+                            Button(action: {
+                                isJournalingPresented.toggle()
+                            }) {
+                                Image(systemName: "book.closed")
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                                    .foregroundColor(.black)
+                            }
+
+                            Button(action: {
+                                withAnimation {
+                                    isSpotlightPresented = true
+                                }
+                            }) {
+                                Image(systemName: "magnifyingglass")
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                                    .foregroundColor(.black)
+
+                                    .clipShape(Circle())
+                            }
                         }
+                        .padding(.trailing, 15)
                     }
                     .frame(height: UIScreen.main.bounds.height * 0.1)
 
