@@ -266,7 +266,7 @@ struct MeasureFootprintView: View {
                 Text("💰 Cost to offset: **$\(String(format: "%.2f", offsetCost))**")
             }
             .padding()
-            .frame(maxWidth: .infinity, alignment: .leading) // ✅ Full width
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
         }
 
@@ -278,7 +278,7 @@ struct MeasureFootprintView: View {
                     .foregroundColor(travelEfficiencyScore > 70 ? .green : .orange)
             }
             .padding()
-            .frame(maxWidth: .infinity, alignment: .leading) // ✅ Full width
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
         }
 
