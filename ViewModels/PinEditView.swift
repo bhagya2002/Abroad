@@ -28,123 +28,59 @@ struct PinEditView: View {
     @State private var showingFullScreenImage: IdentifiableImage? // ✅ Fixed type
 
     var body: some View {
-        NavigationStack {
-            Form {
-                TitleInputView(pin: $pin)
-//                Section(header: Text("📍 Choose a Pin Icon")) {
-//                    Picker("Select Icon", selection: $pin.icon) {
-//                        ForEach(["📍", "🏔", "🏖", "🏙", "🎢", "🌲", "🗽", "star", "mappin"], id: \.self) { icon in
-//                            Text(icon).tag(icon)
-//                        }
-//                    }
-//                    .pickerStyle(MenuPickerStyle())
-//                }
-
-                CategoryPickerView(selectedCategory: $pin.category)
-
-                if pin.category == .visited {
-                    Picker("Select Tab", selection: $selectedTab) {
-                        Text("Trip Details").tag(0)
-                        Text("Measure Footprint").tag(1)
-                    }
-                    .pickerStyle(SegmentedPickerStyle())
-                    .padding()
+            NavigationStack {
+                Form {
+                    // ✅ Name Input (Always Visible)
+                    TitleInputView(pin: $pin)
                     
-                    if selectedTab == 0 {
-                        TripDetailsView(pin: $pin, startDate: $startDate, endDate: $endDate)
-                    } else {
-                        MeasureFootprintView(pin: $pin)
-                    }
-                }
+                    // ✅ Category Picker (Always Visible)
+                    CategoryPickerView(selectedCategory: $pin.category)
 
-                if pin.category == .future {
-                    FutureTripView(pin: $pin, startDate: $startDate)
-                }
-                
-                // Photo Upload Section
-                // ✅ Photo Upload Section
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Add Photos")
-                        .font(.headline)
+                    // ✅ Show details only when category is selected
+                    if pin.category != .none {
+                        if pin.category == .visited {
+                            Picker("Select Tab", selection: $selectedTab) {
+                                Text("Trip Details").tag(0)
+                                Text("Measure Footprint").tag(1)
+                            }
+                            .pickerStyle(SegmentedPickerStyle())
+                            .padding()
 
-                    // ✅ Photo Gallery (Apple-Like Horizontal Scroll)
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(Array(selectedImages.enumerated()), id: \.element) { index, image in
-                                ZStack(alignment: .topTrailing) {
-                                    Image(uiImage: image)
-                                        .resizable()
-                                        .scaledToFill()
-                                        .frame(width: 80, height: 80)
-                                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                                        .shadow(radius: 1)
-                                        .onTapGesture {
-                                            showingFullScreenImage = IdentifiableImage(image: image) // ✅ Tap to fullscreen
-                                        }
-
-                                    // ✅ Apple-Like Delete Button (Subtle, Inline)
-                                    Button(action: {
-                                        Task { await deleteImage(at: index) }
-                                    }) {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .resizable()
-                                            .frame(width: 18, height: 18)
-                                            .foregroundColor(.white)
-                                            .background(Color.black.opacity(0.6))
-                                            .clipShape(Circle())
-                                    }
-                                    .offset(x: 5, y: -5)
-                                }
+                            if selectedTab == 0 {
+                                TripDetailsView(pin: $pin, startDate: $startDate, endDate: $endDate)
+                            } else {
+                                MeasureFootprintView(pin: $pin)
                             }
                         }
-                    }
-                    .padding(.horizontal)
 
-                    // ✅ Apple-Like Photos Picker (No Highlighting)
-                    PhotosPicker(selection: $photoPickerItems, maxSelectionCount: 10 - pin.imageFilenames.count, matching: .images) {
-                        HStack {
-                            Image(systemName: "plus")
-                            Text("Select Photos")
+                        if pin.category == .future {
+                            FutureTripView(pin: $pin, startDate: $startDate)
                         }
-                        .foregroundColor(.primary)
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(Color(UIColor.systemBackground))) // ✅ No Highlighting Effect
                     }
-                    .padding(.horizontal)
-                    .onChange(of: photoPickerItems) { _ in
-                        Task { await loadSelectedImages() }
+
+                    // ✅ Delete button only for existing pins
+                    if !pin.title.isEmpty {
+                        DeleteButtonView(isPresented: $isPresented, deletePin: deletePin, viewModel: viewModel)
                     }
                 }
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 5).fill(Color(UIColor.systemBackground)))
-
-
-                DeleteButtonView(isPresented: $isPresented, deletePin: deletePin, viewModel: viewModel)
-            }
-            .formStyle(.grouped)
-            .navigationTitle(pin.title.isEmpty ? "New Pin" : "Edit Pin")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    if pin.title.isEmpty {
-                        Button("Cancel") {
-                            deletePin()
-                            isPresented = false
-                        }
-                        .foregroundColor(.red)
-                    } else {
-                        Button("Delete") {
-                            deletePin()
+                .formStyle(.grouped)
+                .navigationTitle(pin.title.isEmpty ? "New Pin" : "Edit Pin")
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(viewModel.pins.contains(where: { $0.id == pin.id }) ? "Cancel" : "Delete") {
+                            if !viewModel.pins.contains(where: { $0.id == pin.id }) || pin.title.isEmpty {
+                                deletePin() // Delete only if it's a new pin with no title or if explicitly deleting an existing pin
+                            }
                             isPresented = false
                         }
                         .foregroundColor(.red)
                     }
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    SaveButtonView(isPresented: $isPresented, pin: $pin, viewModel: viewModel)
+                    
+                    ToolbarItem(placement: .confirmationAction) {
+                        SaveButtonView(isPresented: $isPresented, pin: $pin, viewModel: viewModel)
+                    }
                 }
             }
-        }
         .task {
             await loadSavedImages()
         }
@@ -194,24 +130,6 @@ struct PinEditView: View {
         await ImageStorage.shared.deleteImage(named: filename)
         pin.imageFilenames.remove(at: index)
         await loadSavedImages()
-    }
-}
-
-// ✅ Full-Screen Image Viewer
-struct ImageViewer: View {
-    let image: UIImage
-    @Environment(\.dismiss) var dismiss
-
-    var body: some View {
-        ZStack {
-            Color.black.ignoresSafeArea()
-            Image(uiImage: image)
-                .resizable()
-                .scaledToFit()
-                .onTapGesture {
-                dismiss() // ✅ Tap anywhere to dismiss
-            }
-        }
     }
 }
 

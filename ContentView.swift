@@ -22,7 +22,7 @@ class PinsViewModel: ObservableObject {
 
     func loadPins() {
         if let savedData = UserDefaults.standard.data(forKey: storageKey),
-           let decoded = try? JSONDecoder().decode([Pin].self, from: savedData) {
+           let decoded = try? JSONDecoder().decode([Pin] .self, from: savedData) {
             self.pins = decoded
         }
     }
@@ -30,33 +30,39 @@ class PinsViewModel: ObservableObject {
 
 struct ContentView: View {
     @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795), // Centered on North America
-        span: MKCoordinateSpan(latitudeDelta: 30.0, longitudeDelta: 60.0) // Wider view
+        center: CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795),
+        span: MKCoordinateSpan(latitudeDelta: 30.0, longitudeDelta: 60.0)
     )
 
     @StateObject private var viewModel = PinsViewModel()
     @State private var selectedPin: Pin? = nil
     @State private var isEditingPin: Bool = false
-    @State private var isSidebarOpen: Bool = false // Track sidebar visibility
+    @State private var isSidebarOpen: Bool = false
 
-    // Spotlight Search States
+    @State private var isJournalingPresented: Bool = false
+
     @State private var isSpotlightPresented: Bool = false
     @State private var searchText: String = ""
-    @State private var selectedFilters: [String] = []
 
     var body: some View {
         ZStack {
-            // Main App Layout
             HStack {
-                // Sidebar integration
                 if isSidebarOpen {
                     SidebarView(viewModel: viewModel, isSidebarOpen: $isSidebarOpen)
                         .transition(.move(edge: .leading))
                         .animation(.easeInOut, value: isSidebarOpen)
+                    // ✅ Vertical Divider with Padding
+                    VStack {
+                        Rectangle()
+                            .fill(Color.gray.opacity(0.25)) // Light gray divider
+                            .frame(width: 2) // Thickness of the divider
+                            .frame(maxHeight: .infinity)
+                    }
+                    .padding(.horizontal, 4) // ✅ Space around the divider
                 }
 
                 VStack(spacing: 0) {
-                    // Top Navigation Bar
+                    // Navigation Bar
                     HStack(spacing: 0) {
                         Button(action: {
                             withAnimation { isSidebarOpen.toggle() }
@@ -64,19 +70,35 @@ struct ContentView: View {
                             Image(systemName: "sidebar.leading")
                                 .resizable()
                                 .frame(width: 30, height: 30)
-                                .padding()
+                                .padding(6)
                                 .background(isSidebarOpen ? Color(.systemGray4) : Color.clear)
-                                .foregroundColor(.primary)
+                                .foregroundColor(.black)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
-                        .foregroundColor(.primary)
-                        .background(Color(.systemBackground))
+                        .padding(.leading, 10)
 
-                        EcoTipBannerView()
-                            .frame(maxWidth: .infinity, minHeight: 40, maxHeight: 40)
-                            .multilineTextAlignment(.center)
-                            .background(Color.gray.opacity(0.2))
-                            .clipShape(RoundedRectangle(cornerRadius: 15))
+                        Spacer()
+
+                        // ML Feature Icons & Abroad Title
+                        HStack(spacing: 10) {
+                            Button(action: {
+                                    isJournalingPresented.toggle()
+                                }) {
+                                    Image(systemName: "book.closed")
+                                        .resizable()
+                                        .frame(width: 30, height: 30)
+                                        .foregroundColor(.black)
+                                }
+
+                            Text("Abroad")
+                                .font(.title) // Increased text size
+                                .bold()
+                                .foregroundColor(.black)
+
+                            Image(systemName: "photo.on.rectangle")
+                        }
+
+                        Spacer()
 
                         // Spotlight Search Button
                         Button(action: {
@@ -86,8 +108,8 @@ struct ContentView: View {
                         }) {
                             Image(systemName: "magnifyingglass")
                                 .resizable()
-                                .frame(width: 20, height: 20)
-                                .foregroundColor(.blue)
+                                .frame(width: 30, height: 30) // Made the same size as the sidebar icon
+                                .foregroundColor(.black)
                                 .padding(8)
                                 .clipShape(Circle())
                                 .padding(.horizontal, 15)
@@ -106,7 +128,6 @@ struct ContentView: View {
                         .edgesIgnoringSafeArea(.all)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
 
-                        // Welcome Panel
                         if viewModel.pins.isEmpty {
                             VStack {
                                 WelcomePanelView()
@@ -124,7 +145,6 @@ struct ContentView: View {
             }
 
             // Spotlight Search Overlay
-            // Spotlight Search Overlay
             if isSpotlightPresented {
                 SpotlightSearchView(
                     isPresented: $isSpotlightPresented,
@@ -136,13 +156,12 @@ struct ContentView: View {
                 .transition(.opacity)
                 .animation(.easeInOut, value: isSpotlightPresented)
             }
-
         }
         .overlay(
             Group {
                 if isEditingPin, let index = selectedPinIndex(), index < viewModel.pins.count {
                     ZStack {
-                        Color.black.opacity(0.3) // Background blur effect
+                        Color.black.opacity(0.3)
                             .edgesIgnoringSafeArea(.all)
                             .onTapGesture {
                                 handlePinDismiss(index: index)
@@ -179,6 +198,12 @@ struct ContentView: View {
                     .transition(.scale)
                     .animation(.easeInOut, value: isEditingPin)
                 }
+                
+                if isJournalingPresented {
+                    JournalModalView(isPresented: $isJournalingPresented)
+                        .transition(.move(edge: .bottom))
+                        .animation(.easeInOut, value: isJournalingPresented)
+                }
             }
         )
     }
@@ -206,7 +231,7 @@ struct ContentView: View {
     }
 }
 
-// ✅ Updated Welcome Panel View (No Longer Needs `pins` as a Parameter)
+// ✅ Updated Welcome Panel View
 struct WelcomePanelView: View {
     var body: some View {
         VStack {
@@ -220,15 +245,6 @@ struct WelcomePanelView: View {
                 }
 
                 Spacer()
-
-//                Button(action: {
-//                    // Open add new pin
-//                }) {
-//                    Image(systemName: "plus.circle.fill")
-//                        .resizable()
-//                        .frame(width: 40, height: 40)
-//                        .foregroundColor(.blue)
-//                }
             }
             .padding()
             .background(.ultraThinMaterial)

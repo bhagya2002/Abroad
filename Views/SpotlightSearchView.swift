@@ -21,15 +21,13 @@ struct SpotlightSearchView: View {
 
     var body: some View {
         ZStack {
-            // Subtle Background Blur
             Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+
+            Rectangle()
+                .fill(Material.ultraThinMaterial) // ✅ Ensures the blur covers the full height
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea()
-                .background(Material.ultraThinMaterial)
-                .onTapGesture {
-                    withAnimation {
-                        isPresented = false
-                    }
-                }
 
             // Spotlight Search UI (Pill + Expanding Results)
             VStack(spacing: 0) {
@@ -40,7 +38,7 @@ struct SpotlightSearchView: View {
 
                     TextField("", text: $searchText)
                         .placeholder(when: searchText.isEmpty) {
-                            Text("Search Locations, Rating = 1-5, Category...")
+                            Text("Search Locations, Rating = 1-5, Category = Visited/Future Trip Plan...")
                                 .foregroundColor(Color.white.opacity(0.8))
                         }
                         .foregroundColor(.white)
@@ -64,7 +62,13 @@ struct SpotlightSearchView: View {
                 }
                 .padding()
                 .background(Color.black.opacity(0.9))
-                .cornerRadius(20)
+                .clipShape(RoundedCorner(radius: 20, corners: filteredPins.isEmpty ? .allCorners : [.topLeft, .topRight])) // ✅ Keeps top corners always rounded
+                
+                if !filteredPins.isEmpty {
+                    Divider()
+                        .background(Color.white.opacity(0.2)) // ✅ Light gray/white divider for subtle effect
+                        .padding(.horizontal, 10) // ✅ Adds spacing from edges
+                }
 
                 // Search Results
                 if !filteredPins.isEmpty {
@@ -84,7 +88,7 @@ struct SpotlightSearchView: View {
                                     .foregroundColor(.gray)
                             }
                             .padding()
-                            .background(Color.black.opacity(0.85))
+//                            .background(Color.black.opacity(0.65))
                             .cornerRadius(10)
                             .onTapGesture {
                                 withAnimation {
@@ -106,15 +110,23 @@ struct SpotlightSearchView: View {
                         }
                     }
                     .padding()
-                    .background(Color.black.opacity(0.65))
-                    .cornerRadius(20)
+                    .background(Color.black.opacity(0.90))
+                    .clipShape(RoundedCorner(radius: 20, corners: filteredPins.isEmpty ? .allCorners : [.bottomLeft, .bottomRight]))
+
                 }
             }
+            .frame(maxHeight: .infinity)
             .frame(maxWidth: UIScreen.main.bounds.width * 0.85)
             .onAppear {
                 searchText = "" // ✅ Clears search bar every time Spotlight opens
             }
         }
+        .onTapGesture {
+            withAnimation {
+                isPresented = false
+            }
+        }
+        .ignoresSafeArea()
     }
 
     // MARK: - Filtering Logic
@@ -135,5 +147,20 @@ extension View {
             }
             self
         }
+    }
+}
+
+// ✅ Custom Shape for Selective Corner Radius
+struct RoundedCorner: Shape {
+    var radius: CGFloat
+    var corners: UIRectCorner
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
     }
 }

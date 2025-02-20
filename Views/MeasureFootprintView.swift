@@ -10,17 +10,17 @@ import Charts
 
 struct CarbonEmissionFactors {
     static let emissionsPerKm: [String: Double] = [
-        "Plane ✈️": 0.25,  // 250g CO₂ per km
-        "Train 🚆": 0.041, // 41g CO₂ per km
-        "Subway 🚇": 0.04, // 40g CO₂ per km
-        "Car 🚗": 0.18,    // 180g CO₂ per km
-        "Electric Car 🚙⚡": 0.05, // 50g CO₂ per km
-        "Motorbike 🏍️": 0.10, // 100g CO₂ per km
-        "Bus 🚌": 0.08,    // 80g CO₂ per km
-        "Bicycle 🚲": 0.0,  // 0g CO₂ per km
-        "Walking 🚶": 0.0,   // 0g CO₂ per km
-        "Ferry ⛴️": 0.16,   // 160g CO₂ per km
-        "Carpooling 🚗👥": 0.06 // 60g CO₂ per km
+        "Plane": 0.25,  // 250g CO₂ per km
+        "Train": 0.041, // 41g CO₂ per km
+        "Subway": 0.04, // 40g CO₂ per km
+        "Car": 0.18,    // 180g CO₂ per km
+        "Electric Car": 0.05, // 50g CO₂ per km
+        "Motorbike": 0.10, // 100g CO₂ per km
+        "Bus": 0.08,    // 80g CO₂ per km
+        "Bicycle": 0.0,  // 0g CO₂ per km
+        "Walking": 0.0,   // 0g CO₂ per km
+        "Ferry": 0.16,   // 160g CO₂ per km
+        "Carpooling": 0.06 // 60g CO₂ per km
     ]
 }
 
@@ -31,8 +31,8 @@ struct MeasureFootprintView: View {
     @State private var showChart = false
 
     let transportOptions = [
-        "Plane ✈️", "Train 🚆", "Subway 🚇", "Car 🚗", "Electric Car 🚙⚡",
-        "Motorbike 🏍️", "Bus 🚌", "Bicycle 🚲", "Walking 🚶", "Ferry ⛴️", "Carpooling 🚗👥"
+        "Plane", "Train", "Subway", "Car", "Electric Car",
+        "Motorbike", "Bus", "Bicycle", "Walking", "Ferry", "Carpooling"
     ]
 
     var totalEmissions: Double {
@@ -113,6 +113,7 @@ struct MeasureFootprintView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
             .padding(.horizontal)
+            .buttonStyle(PlainButtonStyle())
 
             if showChart {
                 VStack(alignment: .leading, spacing: 10) {

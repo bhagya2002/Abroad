@@ -14,9 +14,12 @@ struct TransportEntry: Identifiable, Codable {
     var distance: String
 }
 
-enum PinCategory: String, Codable, CaseIterable {
+enum PinCategory: String, Codable, CaseIterable, Identifiable {
+    case none = "None"
     case visited = "Visited"
-    case future = "Bucket List"
+    case future = "Future Travel Plan"
+    
+    var id: String { self.rawValue }
 }
 
 struct Pin: Identifiable, Codable, Equatable {
