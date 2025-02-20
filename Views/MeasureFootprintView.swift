@@ -28,6 +28,7 @@ struct MeasureFootprintView: View {
     @Binding var pin: Pin
     @State private var calculatedEmissions: [String: Double] = [:]
     @State private var projectedSavings: Double = 0.0
+    @State private var travelEfficiencyScore: Int = 0
     @State private var showChart = false
 
     let transportOptions = [
@@ -41,40 +42,50 @@ struct MeasureFootprintView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            // ✅ Title Section
             Text("🌱 Measure Your Carbon Footprint")
                 .font(.title2)
                 .bold()
                 .padding(.horizontal)
                 .padding(.top, 10)
 
-            // ✅ Transport Input Section
             ScrollView {
                 VStack(spacing: 15) {
                     ForEach($pin.transportEntries) { $entry in
                         HStack(spacing: 12) {
-                            // ✅ Mode Picker (Minimalist & Apple-like)
-                            Picker("", selection: $entry.mode) {
-                                ForEach(transportOptions, id: \.self) { mode in
-                                    Text(mode)
+                            Picker("Select Transport", selection: $entry.mode) {
+                                Section(header: Text("✈️ Air Transport").font(.headline)) {
+                                    Text("Plane ✈️").tag("Plane")
+                                }
+
+                                Section(header: Text("🚆 Land Transport").font(.headline)) {
+                                    Text("Train 🚆").tag("Train")
+                                    Text("Subway 🚇").tag("Subway")
+                                    Text("Car 🚗").tag("Car")
+                                    Text("Electric Car ⚡🚗").tag("Electric Car")
+                                    Text("Motorbike 🏍️").tag("Motorbike")
+                                    Text("Bus 🚌").tag("Bus")
+                                    Text("Carpooling 🚘").tag("Carpooling")
+                                    Text("Bicycle 🚲").tag("Bicycle")
+                                    Text("Walking 🚶‍♂️").tag("Walking")
+                                }
+
+                                Section(header: Text("⛴️ Water Transport").font(.headline)) {
+                                    Text("Ferry ⛴️").tag("Ferry")
                                 }
                             }
                             .pickerStyle(MenuPickerStyle())
-                            .frame(width: 120)
+                            .frame(width: 180)
 
-                            // ✅ Refined Distance Input Field
                             TextField("Distance (km)", text: $entry.distance)
                                 .keyboardType(.decimalPad)
-                                .padding(.vertical, 8)
-                                .padding(.horizontal, 12)
-                                .background(Color(.systemGray6)) // ✅ Better contrast, matches iOS
+                                .padding()
+                                .background(Color(.systemGray6))
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .onChange(of: entry.distance) { _ in
                                     savePinData()
                                 }
 
-                            // ✅ Simple Delete Button (No Extra Padding)
                             Button(action: { removeEntry(entry) }) {
                                 Image(systemName: "minus.circle.fill")
                                     .foregroundColor(.red)
@@ -98,10 +109,10 @@ struct MeasureFootprintView: View {
             }
             .frame(maxHeight: 250)
 
-            // ✅ Calculate Button
             Button(action: {
                 calculateFootprint()
                 calculateProjectedSavings()
+                calculateTravelEfficiency()
                 showChart = true
             }) {
                 Text("Calculate Footprint")
@@ -117,7 +128,6 @@ struct MeasureFootprintView: View {
 
             if showChart {
                 VStack(alignment: .leading, spacing: 10) {
-                    // ✅ Carbon Footprint Analysis Section
                     VStack(alignment: .leading, spacing: 5) {
                         Text("🌍 Carbon Footprint Analysis")
                             .font(.headline)
@@ -141,7 +151,6 @@ struct MeasureFootprintView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
 
-                    // ✅ Eco-Friendly Savings Section
                     if projectedSavings > 0 {
                         VStack(alignment: .leading) {
                             Text("💡 Eco-Friendly Alternative")
@@ -156,7 +165,6 @@ struct MeasureFootprintView: View {
                         .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
                     }
 
-                    // ✅ Emissions Chart
                     Chart {
                         ForEach(calculatedEmissions.sorted(by: { $0.value > $1.value }), id: \.key) { key, value in
                             BarMark(x: .value("Transport", key), y: .value("Emissions", value))
@@ -165,7 +173,6 @@ struct MeasureFootprintView: View {
                     }
                     .frame(height: 250)
 
-                    // ✅ Real-World Impact
                     VStack(alignment: .leading) {
                         Text("🌱 Real-World Impact")
                             .font(.headline)
@@ -179,6 +186,9 @@ struct MeasureFootprintView: View {
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
+                    
+                    displayCarbonOffsetRecommendations()
+                    displayTravelEfficiencyScore()
                 }
                 .padding()
             }
@@ -189,36 +199,97 @@ struct MeasureFootprintView: View {
     // MARK: - Footprint Calculations
 
     func calculateFootprint() {
-        var newEmissions: [String: Double] = [:]
-        for entry in pin.transportEntries {
-            if let distanceValue = Double(entry.distance),
-               let emissionFactor = CarbonEmissionFactors.emissionsPerKm[entry.mode] {
-                newEmissions[entry.mode] = (newEmissions[entry.mode] ?? 0) + (distanceValue * emissionFactor)
+            var newEmissions: [String: Double] = [:]
+            for entry in pin.transportEntries {
+                if let distanceValue = Double(entry.distance),
+                   let emissionFactor = CarbonEmissionFactors.emissionsPerKm[entry.mode] {
+                    newEmissions[entry.mode] = (newEmissions[entry.mode] ?? 0) + (distanceValue * emissionFactor)
+                }
             }
+            calculatedEmissions = newEmissions
         }
-        calculatedEmissions = newEmissions
-    }
 
-    func calculateProjectedSavings() {
-        projectedSavings = 0.0
-        for entry in pin.transportEntries {
-            if let distanceValue = Double(entry.distance),
-               let currentEmission = CarbonEmissionFactors.emissionsPerKm[entry.mode] {
-                if entry.mode == "Plane ✈️", let trainEmission = CarbonEmissionFactors.emissionsPerKm["Train 🚆"] {
-                    projectedSavings += (currentEmission - trainEmission) * distanceValue
+        func calculateProjectedSavings() {
+            projectedSavings = 0.0
+            for entry in pin.transportEntries {
+                if let distanceValue = Double(entry.distance),
+                   let currentEmission = CarbonEmissionFactors.emissionsPerKm[entry.mode] {
+                    if entry.mode == "Plane ✈️", let trainEmission = CarbonEmissionFactors.emissionsPerKm["Train 🚆"] {
+                        projectedSavings += (currentEmission - trainEmission) * distanceValue
+                    }
                 }
             }
         }
-    }
 
-    func savePinData() {
-        if let encoded = try? JSONEncoder().encode(pin) {
-            UserDefaults.standard.set(encoded, forKey: "pin_\(pin.id.uuidString)")
+        func calculateTravelEfficiency() {
+            let goodModes = ["Train", "Subway", "Bicycle", "Walking", "Bus"]
+            let badModes = ["Plane", "Car", "Motorbike", "Ferry"]
+
+            let ecoTrips = pin.transportEntries.filter { goodModes.contains($0.mode) }.count
+            let highEmissionTrips = pin.transportEntries.filter { badModes.contains($0.mode) }.count
+
+            travelEfficiencyScore = max(0, 100 - (highEmissionTrips * 5) + (ecoTrips * 3))
+            travelEfficiencyScore = min(travelEfficiencyScore, 100)
+        }
+
+        func displayCarbonAnalysis() -> some View {
+            VStack(alignment: .leading) {
+                Text("🌍 Carbon Footprint Analysis")
+                    .font(.headline)
+                Text("Total Emissions: **\(String(format: "%.2f", totalEmissions)) kg CO₂**")
+                    .foregroundColor(totalEmissions > 500 ? .red : totalEmissions > 100 ? .orange : .green)
+            }
+            .padding()
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
+        }
+
+        func displayProjectedSavings() -> some View {
+            VStack(alignment: .leading) {
+                if projectedSavings > 0 {
+                    Text("💡 Eco-Friendly Alternative")
+                        .font(.headline)
+                    Text("Switching to a train could save **\(String(format: "%.1f", projectedSavings)) kg CO₂!**")
+                }
+            }
+            .padding()
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
+        }
+
+        func displayCarbonOffsetRecommendations() -> some View {
+            let treesNeeded = totalEmissions / 20
+            let offsetCost = totalEmissions * 0.02
+
+            return VStack(alignment: .leading) {
+                Text("🌳 Carbon Offset Recommendations")
+                    .font(.headline)
+                Text("To offset this trip, plant **\(Int(treesNeeded)) trees**.")
+                Text("💰 Cost to offset: **$\(String(format: "%.2f", offsetCost))**")
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading) // ✅ Full width
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
+        }
+
+        func displayTravelEfficiencyScore() -> some View {
+            VStack(alignment: .leading) {
+                Text("📊 Travel Efficiency Score")
+                    .font(.headline)
+                Text("Your score: **\(travelEfficiencyScore)/100**")
+                    .foregroundColor(travelEfficiencyScore > 70 ? .green : .orange)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading) // ✅ Full width
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
+        }
+
+        func savePinData() {
+            if let encoded = try? JSONEncoder().encode(pin) {
+                UserDefaults.standard.set(encoded, forKey: "pin_\(pin.id.uuidString)")
+            }
+        }
+
+        func removeEntry(_ entry: TransportEntry) {
+            pin.transportEntries.removeAll { $0.id == entry.id }
+            savePinData()
         }
     }
-
-    func removeEntry(_ entry: TransportEntry) {
-        pin.transportEntries.removeAll { $0.id == entry.id }
-        savePinData()
-    }
-}

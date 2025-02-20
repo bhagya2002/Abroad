@@ -25,7 +25,7 @@ struct SpotlightSearchView: View {
                     .ignoresSafeArea()
 
             Rectangle()
-                .fill(Material.ultraThinMaterial) // ✅ Ensures the blur covers the full height
+                .fill(Material.ultraThinMaterial)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea()
 
@@ -43,7 +43,7 @@ struct SpotlightSearchView: View {
                         }
                         .foregroundColor(.white)
                         .padding()
-                        .focused($isTextFieldFocused) // ✅ Auto-focus when opened
+                        .focused($isTextFieldFocused)
                         .onAppear { isTextFieldFocused = true }
                         .cornerRadius(10)
                         .onChange(of: searchText) { _ in
@@ -62,12 +62,12 @@ struct SpotlightSearchView: View {
                 }
                 .padding()
                 .background(Color.black.opacity(0.9))
-                .clipShape(RoundedCorner(radius: 20, corners: filteredPins.isEmpty ? .allCorners : [.topLeft, .topRight])) // ✅ Keeps top corners always rounded
+                .clipShape(RoundedCorner(radius: 20, corners: filteredPins.isEmpty ? .allCorners : [.topLeft, .topRight]))
                 
                 if !filteredPins.isEmpty {
                     Divider()
-                        .background(Color.white.opacity(0.2)) // ✅ Light gray/white divider for subtle effect
-                        .padding(.horizontal, 10) // ✅ Adds spacing from edges
+                        .background(Color.white.opacity(0.2))
+                        .padding(.horizontal, 10)
                 }
 
                 // Search Results
@@ -94,13 +94,12 @@ struct SpotlightSearchView: View {
                                 withAnimation {
                                     selectedPin = pin
                                     
-                                    // ✅ Check if region update is needed to avoid unnecessary redraws
                                     if abs(region.center.latitude - pin.coordinate.latitude) > 0.0001 ||
                                        abs(region.center.longitude - pin.coordinate.longitude) > 0.0001 {
                                         
                                         region = MKCoordinateRegion(
                                             center: pin.coordinate,
-                                            span: MKCoordinateSpan(latitudeDelta: 0.15, longitudeDelta: 0.15) // ✅ More zoomed-out than before
+                                            span: MKCoordinateSpan(latitudeDelta: 0.15, longitudeDelta: 0.15)
                                         )
                                     }
                                     
@@ -118,7 +117,7 @@ struct SpotlightSearchView: View {
             .frame(maxHeight: .infinity)
             .frame(maxWidth: UIScreen.main.bounds.width * 0.85)
             .onAppear {
-                searchText = "" // ✅ Clears search bar every time Spotlight opens
+                searchText = ""
             }
         }
         .onTapGesture {
@@ -150,7 +149,6 @@ extension View {
     }
 }
 
-// ✅ Custom Shape for Selective Corner Radius
 struct RoundedCorner: Shape {
     var radius: CGFloat
     var corners: UIRectCorner

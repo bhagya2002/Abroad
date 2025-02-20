@@ -41,6 +41,7 @@ struct ContentView: View {
 
     @State private var isJournalingPresented: Bool = false
 
+    @State private var isSidebarPresented: Bool = false
     @State private var isSpotlightPresented: Bool = false
     @State private var searchText: String = ""
 
@@ -51,29 +52,29 @@ struct ContentView: View {
                     SidebarView(viewModel: viewModel, isSidebarOpen: $isSidebarOpen)
                         .transition(.move(edge: .leading))
                         .animation(.easeInOut, value: isSidebarOpen)
-                    // ✅ Vertical Divider with Padding
+                    
                     VStack {
                         Rectangle()
                             .fill(Color.gray.opacity(0.25)) // Light gray divider
                             .frame(width: 2) // Thickness of the divider
                             .frame(maxHeight: .infinity)
                     }
-                    .padding(.horizontal, 4) // ✅ Space around the divider
+                    .padding(.horizontal, 4)
                 }
 
                 VStack(spacing: 0) {
                     // Navigation Bar
                     HStack(spacing: 0) {
                         Button(action: {
-                            withAnimation { isSidebarOpen.toggle() }
+                            withAnimation {
+                                isSidebarPresented = true // Open Sidebar Modal
+                            }
                         }) {
                             Image(systemName: "sidebar.leading")
                                 .resizable()
                                 .frame(width: 30, height: 30)
                                 .padding(6)
-                                .background(isSidebarOpen ? Color(.systemGray4) : Color.clear)
                                 .foregroundColor(.black)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
                         .padding(.leading, 10)
 
@@ -108,7 +109,7 @@ struct ContentView: View {
                         }) {
                             Image(systemName: "magnifyingglass")
                                 .resizable()
-                                .frame(width: 30, height: 30) // Made the same size as the sidebar icon
+                                .frame(width: 30, height: 30)
                                 .foregroundColor(.black)
                                 .padding(8)
                                 .clipShape(Circle())
@@ -142,6 +143,12 @@ struct ContentView: View {
                     .padding(.horizontal, 15)
                     .cornerRadius(20)
                 }
+            }
+            
+            if isSidebarPresented {
+                SidebarModalView(isPresented: $isSidebarPresented, viewModel: viewModel)
+                    .transition(.opacity)
+                    .animation(.easeInOut, value: isSidebarPresented)
             }
 
             // Spotlight Search Overlay
@@ -231,7 +238,6 @@ struct ContentView: View {
     }
 }
 
-// ✅ Updated Welcome Panel View
 struct WelcomePanelView: View {
     var body: some View {
         VStack {
