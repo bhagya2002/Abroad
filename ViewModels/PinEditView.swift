@@ -8,7 +8,6 @@
 import SwiftUI
 import PhotosUI
 
-// ✅ Identifiable Wrapper for UIImage
 struct IdentifiableImage: Identifiable {
     let id = UUID()
     let image: UIImage
@@ -25,18 +24,15 @@ struct PinEditView: View {
     
     @State private var selectedImages: [UIImage] = []
     @State private var photoPickerItems: [PhotosPickerItem] = []
-    @State private var showingFullScreenImage: IdentifiableImage? // ✅ Fixed type
+    @State private var showingFullScreenImage: IdentifiableImage?
 
     var body: some View {
             NavigationStack {
                 Form {
-                    // ✅ Name Input (Always Visible)
                     TitleInputView(pin: $pin)
                     
-                    // ✅ Category Picker (Always Visible)
                     CategoryPickerView(selectedCategory: $pin.category)
 
-                    // ✅ Show details only when category is selected
                     if pin.category != .none {
                         if pin.category == .visited {
                             Picker("Select Tab", selection: $selectedTab) {
@@ -58,7 +54,6 @@ struct PinEditView: View {
                         }
                     }
 
-                    // ✅ Delete button only for existing pins
                     if !pin.title.isEmpty {
                         DeleteButtonView(isPresented: $isPresented, deletePin: deletePin, viewModel: viewModel)
                     }
@@ -69,7 +64,7 @@ struct PinEditView: View {
                     ToolbarItem(placement: .cancellationAction) {
                         Button(viewModel.pins.contains(where: { $0.id == pin.id }) ? "Cancel" : "Delete") {
                             if !viewModel.pins.contains(where: { $0.id == pin.id }) || pin.title.isEmpty {
-                                deletePin() // Delete only if it's a new pin with no title or if explicitly deleting an existing pin
+                                deletePin()
                             }
                             isPresented = false
                         }
@@ -85,7 +80,7 @@ struct PinEditView: View {
             await loadSavedImages()
         }
         .fullScreenCover(item: $showingFullScreenImage) { identifiableImage in
-            ImageViewer(image: identifiableImage.image) // ✅ Fix applied
+            ImageViewer(image: identifiableImage.image)
         }
         .presentationDragIndicator(.visible)
         .onAppear {
@@ -140,24 +135,20 @@ extension PinsViewModel {
         return pins.filter { pin in
             let lowercaseText = searchText.lowercased()
 
-            // ✅ Match by Title
             if pin.title.lowercased().contains(lowercaseText) {
                 return true
             }
 
-            // ✅ Match by Rating (e.g., "Rating = 4")
             if lowercaseText.starts(with: "rating ="),
                let ratingValue = Int(lowercaseText.replacingOccurrences(of: "rating =", with: "").trimmingCharacters(in: .whitespaces)),
                pin.tripRating == ratingValue {
                 return true
             }
 
-            // ✅ Match by Category
             if pin.category.rawValue.lowercased().contains(lowercaseText) {
                 return true
             }
 
-            // ✅ Match by Date (Formatted Search)
             if let startDate = pin.startDate {
                 let formatter = DateFormatter()
                 formatter.dateStyle = .medium
@@ -166,7 +157,6 @@ extension PinsViewModel {
                 }
             }
 
-            // ✅ Match by Emissions (e.g., "Emissions < 100")
             if lowercaseText.starts(with: "emissions <"),
                let emissionsValue = Double(lowercaseText.replacingOccurrences(of: "emissions <", with: "").trimmingCharacters(in: .whitespaces)),
                (pin.tripBudget ?? 0) < emissionsValue {

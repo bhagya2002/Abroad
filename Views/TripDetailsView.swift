@@ -78,12 +78,10 @@ struct TripDetailsView: View {
                 .background(RoundedRectangle(cornerRadius: 5).fill(Color(UIColor.systemBackground)))
                 
                 // Photo Upload Section
-                // ✅ Photo Upload Section
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Add Photos")
                         .font(.headline)
 
-                    // ✅ Photo Gallery (Apple-Like Horizontal Scroll)
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                             ForEach(Array(selectedImages.enumerated()), id: \.element) { index, image in
@@ -95,10 +93,9 @@ struct TripDetailsView: View {
                                         .clipShape(RoundedRectangle(cornerRadius: 8))
                                         .shadow(radius: 1)
                                         .onTapGesture {
-                                            showingFullScreenImage = IdentifiableImage(image: image) // ✅ Tap to fullscreen
+                                            showingFullScreenImage = IdentifiableImage(image: image)
                                         }
 
-                                    // ✅ Apple-Like Delete Button (Subtle, Inline)
                                     Button(action: {
                                         Task { await deleteImage(at: index) }
                                     }) {
@@ -116,7 +113,6 @@ struct TripDetailsView: View {
                     }
                     .padding(.horizontal)
 
-                    // ✅ Apple-Like Photos Picker (No Highlighting)
                     PhotosPicker(selection: $photoPickerItems, maxSelectionCount: 10 - pin.imageFilenames.count, matching: .images) {
                         HStack {
                             Image(systemName: "plus")
@@ -124,7 +120,7 @@ struct TripDetailsView: View {
                         }
                         .foregroundColor(.blue)
                         .frame(maxWidth: .infinity, minHeight: 44)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(Color(UIColor.systemBackground))) // ✅ No Highlighting Effect
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color(UIColor.systemBackground)))
                     }
                     .padding(.horizontal)
                     .buttonStyle(PlainButtonStyle())
@@ -138,8 +134,7 @@ struct TripDetailsView: View {
             .padding()
         }
         .onAppear {
-            // ✅ Only set start & end dates if they are nil, otherwise keep previous values
-            startDate = pin.startDate ?? Date() // Use existing date if available
+            startDate = pin.startDate ?? Date()
             endDate = pin.endDate ?? Date()
 
             if let budget = pin.tripBudget {
@@ -197,7 +192,6 @@ struct TripDetailsView: View {
     }
 }
 
-// ✅ Full-Screen Image Viewer
 struct ImageViewer: View {
     let image: UIImage
     @Environment(\.dismiss) var dismiss
@@ -209,7 +203,7 @@ struct ImageViewer: View {
                 .resizable()
                 .scaledToFit()
                 .onTapGesture {
-                dismiss() // ✅ Tap anywhere to dismiss
+                dismiss()
             }
         }
     }

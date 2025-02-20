@@ -32,11 +32,11 @@ struct EcoTipBannerView: View {
         GeometryReader { geo in
             ZStack {
                 Text(ecoTips[currentIndex])
-                    .font(.title3) // ✅ Increased font size
+                    .font(.title3)
                     .bold()
                     .multilineTextAlignment(.center)
                     .background(Color.clear)
-                    .foregroundColor(.black) // ✅ Black text for readability
+                    .foregroundColor(.black)
                     .cornerRadius(10)
                     .shadow(radius: 3)
                     .onAppear {
@@ -46,7 +46,7 @@ struct EcoTipBannerView: View {
                     .frame(maxHeight: .infinity, alignment: .center)
 
             }
-            .frame(maxWidth: .infinity) // ✅ Ensures it stretches across the screen
+            .frame(maxWidth: .infinity)
         }
     }
 

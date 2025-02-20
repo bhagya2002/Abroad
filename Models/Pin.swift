@@ -33,20 +33,16 @@ struct Pin: Identifiable, Codable, Equatable {
     var tripRating: Int?
     var tripBudget: Double?
     
-    // ✅ Image Persistence
     var imageFilenames: [String]
     
-    // ✅ Travel Data
     var transportEntries: [TransportEntry]
     
     var icon: String = "📍"
     
-    // ✅ Sustainability & Packing List
     var ecoTips: [String]
     var packingList: [String]
     var ecoRegion: String?
     
-    // ✅ Custom Equatable Implementation (Required for Comparing Pins)
     static func == (lhs: Pin, rhs: Pin) -> Bool {
         return lhs.id == rhs.id // Compare by unique ID
     }

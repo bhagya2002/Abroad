@@ -15,7 +15,6 @@ struct FutureTripView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             
-            // ✅ Separate section for trip dates
             Section {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("📅 Trip Dates").font(.headline)
@@ -24,9 +23,8 @@ struct FutureTripView: View {
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 5).fill(Color(UIColor.systemBackground)))
             }
-            .padding(.bottom, 10) // ✅ Adds spacing between sections
+            .padding(.bottom, 10)
 
-            // ✅ Separate section for sustainable travel tips
             Section {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("🌍 Sustainable Travel Tips for \(pin.ecoRegion ?? "this region")").font(.headline)
@@ -53,12 +51,11 @@ struct FutureTripView: View {
         }
     }
 
-    /// ✅ Generates and stores eco tips & packing list for the Pin **only once**
     private func generateEcoTipsForPin() {
         if pin.ecoRegion == nil || pin.ecoTips.isEmpty || pin.packingList.isEmpty {
             if let guide = SustainableTravelGuide.getGuide(for: (pin.coordinate.latitude, pin.coordinate.longitude)) {
                 if pin.ecoRegion == nil {
-                    pin.ecoRegion = guide.region // ✅ Store region name
+                    pin.ecoRegion = guide.region
                 }
                 if pin.ecoTips.isEmpty {
                     pin.ecoTips = guide.ecoTips.shuffled().prefix(5).map { $0 }

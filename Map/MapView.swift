@@ -49,7 +49,6 @@ struct MapView: UIViewRepresentable {
 
                 self.parent.pins.append(newPin)
 
-                // ✅ Set selectedPin immediately before opening the edit view
                 self.parent.selectedPin = newPin
                 self.parent.isEditingPin = true
                 
@@ -68,18 +67,16 @@ struct MapView: UIViewRepresentable {
                     let currentZoom = self.parent.region.span.latitudeDelta
 
                     if self.parent.selectedPin == pin {
-                        if currentZoom < 0.1 { // ✅ Increased threshold to 0.1 for more zoom
-                            // ✅ Second tap opens PinEditView (Only if already zoomed in)
+                        if currentZoom < 0.1 {
                             self.parent.isEditingPin = true
                         } else {
                             self.parent.isEditingPin = false
                         }
                     } else {
-                        // ✅ First tap zooms in more aggressively
                         self.parent.selectedPin = pin
                         self.parent.region = MKCoordinateRegion(
                             center: pin.coordinate,
-                            span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002) // ✅ More zoom-in effect
+                            span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002)
                         )
                     }
                 }

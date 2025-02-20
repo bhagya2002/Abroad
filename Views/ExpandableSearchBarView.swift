@@ -105,7 +105,6 @@ struct ExpandableSearchBarView: View {
     }
 
     private func applyFilters() {
-        // ✅ Correct function call (only searchText is needed)
         filteredPins = PinsViewModel().filteredPins(searchText: searchText)
     }
 }
