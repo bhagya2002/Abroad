@@ -30,6 +30,7 @@ struct MeasureFootprintView: View {
     @State private var projectedSavings: Double = 0.0
     @State private var travelEfficiencyScore: Int = 0
     @State private var showChart = false
+    @State private var showAlert = false
 
     let transportOptions = [
         "Plane", "Train", "Subway", "Car", "Electric Car",
@@ -54,27 +55,28 @@ struct MeasureFootprintView: View {
                         HStack(spacing: 12) {
                             Picker("Select Transport", selection: $entry.mode) {
                                 Section(header: Text("✈️ Air Transport").font(.headline)) {
-                                    Text("Plane ✈️").tag("Plane")
+                                    Text("Plane").tag("Plane")
                                 }
 
                                 Section(header: Text("🚆 Land Transport").font(.headline)) {
-                                    Text("Train 🚆").tag("Train")
-                                    Text("Subway 🚇").tag("Subway")
-                                    Text("Car 🚗").tag("Car")
-                                    Text("Electric Car ⚡🚗").tag("Electric Car")
-                                    Text("Motorbike 🏍️").tag("Motorbike")
-                                    Text("Bus 🚌").tag("Bus")
-                                    Text("Carpooling 🚘").tag("Carpooling")
-                                    Text("Bicycle 🚲").tag("Bicycle")
-                                    Text("Walking 🚶‍♂️").tag("Walking")
+                                    Text("Train").tag("Train")
+                                    Text("Subway").tag("Subway")
+                                    Text("Car").tag("Car")
+                                    Text("Electric Car").tag("Electric Car")
+                                    Text("Motorbike").tag("Motorbike")
+                                    Text("Bus").tag("Bus")
+                                    Text("Carpooling").tag("Carpooling")
+                                    Text("Bicycle").tag("Bicycle")
+                                    Text("Walking").tag("Walking")
                                 }
 
                                 Section(header: Text("⛴️ Water Transport").font(.headline)) {
-                                    Text("Ferry ⛴️").tag("Ferry")
+                                    Text("Ferry").tag("Ferry")
                                 }
                             }
                             .pickerStyle(MenuPickerStyle())
                             .frame(width: 180)
+                            .accentColor(.black)
 
                             TextField("Distance (km)", text: $entry.distance)
                                 .keyboardType(.decimalPad)
@@ -95,7 +97,7 @@ struct MeasureFootprintView: View {
                     }
 
                     Button(action: {
-                        let newEntry = TransportEntry(id: UUID(), mode: "Plane ✈️", distance: "")
+                        let newEntry = TransportEntry(id: UUID(), mode: "Walking", distance: "")
                         pin.transportEntries.append(newEntry)
                         savePinData()
                     }) {
@@ -110,10 +112,14 @@ struct MeasureFootprintView: View {
             .frame(maxHeight: 250)
 
             Button(action: {
-                calculateFootprint()
-                calculateProjectedSavings()
-                calculateTravelEfficiency()
-                showChart = true
+                if validateDistances() {
+                    calculateFootprint()
+                    calculateProjectedSavings()
+                    calculateTravelEfficiency()
+                    showChart = true
+                } else {
+                    showAlert = true
+                }
             }) {
                 Text("Calculate Footprint")
                     .font(.headline)
@@ -125,6 +131,11 @@ struct MeasureFootprintView: View {
             }
             .padding(.horizontal)
             .buttonStyle(PlainButtonStyle())
+            .alert(isPresented: $showAlert) { // ✅ Properly binding the alert
+                Alert(title: Text("Missing Information"),
+                      message: Text("Please enter distances for all transport entries."),
+                      dismissButton: .default(Text("OK")))
+            }
 
             if showChart {
                 VStack(alignment: .leading, spacing: 10) {
@@ -188,7 +199,7 @@ struct MeasureFootprintView: View {
                     .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
                     
                     displayCarbonOffsetRecommendations()
-                    displayTravelEfficiencyScore()
+//                    displayTravelEfficiencyScore()
                 }
                 .padding()
             }
@@ -197,6 +208,15 @@ struct MeasureFootprintView: View {
     }
 
     // MARK: - Footprint Calculations
+    
+    func validateDistances() -> Bool {
+        for entry in pin.transportEntries {
+            if entry.distance.trimmingCharacters(in: .whitespaces).isEmpty {
+                return false
+            }
+        }
+        return true
+    }
 
     func calculateFootprint() {
             var newEmissions: [String: Double] = [:]

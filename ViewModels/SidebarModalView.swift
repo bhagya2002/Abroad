@@ -55,7 +55,7 @@ struct SidebarModalView: View {
                             createCarbonProgressView()
                             createEcoBadgesView()
                             createRealWorldImpactView()
-                            createTravelEfficiencyScore()
+//                            createTravelEfficiencyScore()
                             createGlobalRankView()
                             createFlightImpactWarning()
                             createTransportModePieChart()
@@ -66,7 +66,7 @@ struct SidebarModalView: View {
                         .padding()
                     }
                 }
-                .frame(width: UIScreen.main.bounds.width * 0.6, height: UIScreen.main.bounds.height * 0.6)
+                .frame(width: UIScreen.main.bounds.width * 0.75, height: UIScreen.main.bounds.height * 0.75)
                 .background(Color.black.opacity(0.9))
                 .cornerRadius(20)
                 .shadow(radius: 10)
@@ -123,7 +123,7 @@ struct SidebarModalView: View {
                             .fill(colors[transportData.keys.sorted().firstIndex(of: key) ?? 0 % colors.count])
                             .frame(width: 10, height: 10)
                         Text("\(key): \(Int(value)) kg CO₂")
-                            .font(.caption)
+                            .font(.subheadline)
                             .foregroundColor(.black)
                     }
                 }
@@ -136,23 +136,24 @@ struct SidebarModalView: View {
     }
 
     private func createTravelEfficiencyScore() -> some View {
-        let score = getTravelEfficiencyScore()
+        let avgScore = viewModel.averageEfficiencyScore()
 
         return VStack {
-            Text("📊 Travel Efficiency Score")
+            Text("Travel Efficiency Score")
                 .font(.headline)
+                .foregroundColor(.white)
 
             ZStack {
                 Circle()
-                    .trim(from: 0.0, to: CGFloat(score) / 100)
-                    .stroke(score > 70 ? Color.green : Color.orange, lineWidth: 12)
+                    .trim(from: 0.0, to: CGFloat(avgScore) / 100)
+                    .stroke(avgScore > 70 ? Color.green : Color.orange, lineWidth: 12)
                     .rotationEffect(.degrees(-90))
                     .frame(width: 100, height: 100)
 
-                Text("\(score)%")
+                Text("\(String(format: "%.2f", avgScore))%")
                     .font(.title)
                     .bold()
-                    .foregroundColor(.black)
+                    .foregroundColor(.white)
             }
             .frame(height: 120)
         }
@@ -168,7 +169,7 @@ struct SidebarModalView: View {
             HStack {
                 VStack {
                     Text("🌱 Best")
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundColor(.green)
                     Text(getBestTransport())
                         .font(.title2)
@@ -177,7 +178,7 @@ struct SidebarModalView: View {
                 Spacer()
                 VStack {
                     Text("⚠️ Worst")
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundColor(.red)
                     Text(getWorstTransport())
                         .font(.title2)
@@ -268,8 +269,8 @@ struct SidebarModalView: View {
         VStack(alignment: .leading, spacing: 5) {
             Text("🌱 Real-World Impact")
                 .font(.headline)
-            Text("🌳 **Trees Planted Equivalent:** \(getTreeEquivalent())")
-            Text("🚗 **Cars Removed from Road:** \(getCarEquivalent())")
+            Text("**Trees Planted Equivalent:** \(getTreeEquivalent())")
+            Text("**Cars Removed from Road:** \(getCarEquivalent())")
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -278,16 +279,16 @@ struct SidebarModalView: View {
 
     private func createFlightImpactWarning() -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text("🛫 Flight Impact Warning")
+            Text("Flight Impact Warning")
                 .font(.headline)
                 .foregroundColor(.red)
             if let highestFlight = getHighestFlightImpact() {
                 Text("Your **\(highestFlight) km** flight emitted the most CO₂.")
-                Text("🚆 **Taking a train could have saved 80% CO₂!**")
+                Text("**Taking a train could have saved 80% CO₂!**")
                     .foregroundColor(.blue)
             } else {
-                Text("✅ No recent high-emission flights detected!")
-                    .foregroundColor(.green)
+                Text("No recent high-emission flights detected!")
+                    .foregroundColor(.black)
             }
         }
         .padding()
@@ -297,7 +298,7 @@ struct SidebarModalView: View {
 
     private func createGlobalRankView() -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text("🌍 Your CO₂ vs. Global Travelers")
+            Text("Your CO₂ vs. Global Travelers")
                 .font(.headline)
             Text("Your emissions are **\(getGlobalRank())% better** than the average traveler!")
         }
@@ -310,7 +311,7 @@ struct SidebarModalView: View {
         VStack(alignment: .leading, spacing: 5) {
             Text("📌 Most Visited Places")
                 .font(.headline)
-            Text("🌍 **Country:** \(getMostVisitedCountry())")
+            Text("**Country:** \(getMostVisitedCountry())")
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -321,9 +322,9 @@ struct SidebarModalView: View {
         VStack(alignment: .leading, spacing: 5) {
             Text("📍 Travel Summary")
                 .font(.headline)
-            Text("📍 Locations Saved: **\(viewModel.pins.count)**")
-            Text("✈️ Next Trip: **\(viewModel.pins.first(where: { $0.category == .future })?.title ?? "Plan one!")**")
-            Text("🌱 CO₂ Saved: **\(calculateCarbonSavings()) kg**")
+            Text("Locations Saved: **\(viewModel.pins.count)**")
+            Text("Next Trip: **\(viewModel.pins.first(where: { $0.category == .future })?.title ?? "Plan one!")**")
+            Text("CO₂ Saved: **\(calculateCarbonSavings()) kg**")
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -332,8 +333,9 @@ struct SidebarModalView: View {
 
     // MARK: - Helper Functions
 
-    private func calculateCarbonSavings() -> Double {
-        return viewModel.pins.reduce(0) { $0 + ($1.tripBudget ?? 0) * 0.1 }
+    private func calculateCarbonSavings() -> String {
+        let totalSavings = viewModel.pins.reduce(0) { $0 + ($1.tripBudget ?? 0) * 0.1 }
+        return String(format: "%.2f", totalSavings)
     }
 
     private func getTotalEmissions() -> Double {
@@ -430,19 +432,60 @@ struct SidebarModalView: View {
         let totalEmissions = getTotalEmissions()
         var badges: [String] = []
 
+        // Carbon Footprint Reduction Badges
         if totalEmissions < 500 { badges.append("🌱 Carbon Saver - Emitted less than 500 kg CO₂") }
         if totalEmissions < 100 { badges.append("♻️ Green Traveler - Emitted less than 100 kg CO₂") }
+        if totalEmissions == 0 { badges.append("🌍 Zero Carbon Footprint - No emissions recorded!") }
         if totalEmissions > 1000 { badges.append("⚠️ High Carbon User - Over 1000 kg CO₂") }
-        
+
+        // Train Usage Badges
         let trainTrips = viewModel.pins.flatMap { $0.transportEntries }
-            .filter { $0.mode == "Train 🚆" }
+            .filter { $0.mode == "Train" }
         if trainTrips.count >= 5 { badges.append("🚆 Train Enthusiast - 5+ train trips") }
-        
+        if trainTrips.count >= 10 { badges.append("🌎 Rail Explorer - 10+ train trips") }
+        if trainTrips.count >= 20 { badges.append("🌍 Sustainable Voyager - 20+ train trips") }
+
+        // Walking & Biking Badges
         let walkingTrips = viewModel.pins.flatMap { $0.transportEntries }
-            .filter { $0.mode == "Walking 🚶" }
+            .filter { $0.mode == "Walking" }
         let walkingDistance = walkingTrips.reduce(0) { $0 + (Double($1.distance) ?? 0) }
-        if walkingDistance > 50 { badges.append("🚶 Walking Hero - Walked 50+ km") }
         
+        if walkingDistance > 50 { badges.append("🚶 Walking Hero - Walked 50+ km") }
+        if walkingDistance > 100 { badges.append("🥾 Trailblazer - Walked 100+ km") }
+        if walkingDistance > 250 { badges.append("🏆 Urban Explorer - Walked 250+ km") }
+
+        let bikingTrips = viewModel.pins.flatMap { $0.transportEntries }
+            .filter { $0.mode == "Bicycle" }
+        let bikingDistance = bikingTrips.reduce(0) { $0 + (Double($1.distance) ?? 0) }
+        
+        if bikingDistance > 50 { badges.append("🚴‍♂️ Bike Commuter - Biked 50+ km") }
+        if bikingDistance > 100 { badges.append("🚵‍♂️ Pedal Power - Biked 100+ km") }
+        if bikingDistance > 200 { badges.append("🌿 Eco Cyclist - Biked 200+ km") }
+
+        // Carpooling Badges
+        let carpoolTrips = viewModel.pins.flatMap { $0.transportEntries }
+            .filter { $0.mode == "Carpooling" }
+        if carpoolTrips.count >= 5 { badges.append("🚘 Carpool Champion - 5+ carpool trips") }
+        if carpoolTrips.count >= 10 { badges.append("♻️ Shared Ride Advocate - 10+ carpool trips") }
+
+        // Electric Vehicle Usage
+        let evTrips = viewModel.pins.flatMap { $0.transportEntries }
+            .filter { $0.mode == "Electric Car" }
+        if evTrips.count >= 3 { badges.append("🔋 EV Supporter - Used an electric car 3+ times") }
+        if evTrips.count >= 10 { badges.append("⚡ Clean Energy Driver - 10+ electric car trips") }
+
+        // Ferry Usage (Alternative to Air Travel)
+        let ferryTrips = viewModel.pins.flatMap { $0.transportEntries }
+            .filter { $0.mode == "Ferry" }
+        if ferryTrips.count >= 3 { badges.append("⛴️ Blue Water Explorer - 3+ ferry trips") }
+        if ferryTrips.count >= 10 { badges.append("🌊 Ocean Traveler - 10+ ferry trips") }
+
+        // Avoiding Flights Badges
+        let flightTrips = viewModel.pins.flatMap { $0.transportEntries }
+            .filter { $0.mode == "Plane" }
+        if flightTrips.isEmpty { badges.append("✈️ Flight-Free Traveler - No flights taken!") }
+        if flightTrips.count < 3 && totalEmissions < 500 { badges.append("🌍 Conscious Flyer - Fewer than 3 flights & under 500 kg CO₂") }
+
         return badges
     }
 

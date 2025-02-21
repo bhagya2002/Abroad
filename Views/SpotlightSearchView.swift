@@ -104,6 +104,11 @@ struct SpotlightSearchView: View {
                                     }
                                     
                                     isPresented = false
+                                    
+                                    // Post notification to trigger navigation in ContentView
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                        NotificationCenter.default.post(name: NSNotification.Name("NavigateToPinEditView"), object: pin)
+                                    }
                                 }
                             }
                         }
