@@ -43,6 +43,19 @@ struct Pin: Identifiable, Codable, Equatable {
     var packingList: [String]
     var ecoRegion: String?
     
+    var travelEfficiencyScore: Int? {
+        get {
+            return UserDefaults.standard.integer(forKey: "efficiencyScore_\(id.uuidString)")
+        }
+        set {
+            if let newValue = newValue {
+                UserDefaults.standard.set(newValue, forKey: "efficiencyScore_\(id.uuidString)")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "efficiencyScore_\(id.uuidString)")
+            }
+        }
+    }
+    
     static func == (lhs: Pin, rhs: Pin) -> Bool {
         return lhs.id == rhs.id // Compare by unique ID
     }

@@ -26,11 +26,11 @@ struct MapView: UIViewRepresentable {
             let touchPoint = gestureRecognizer.location(in: mapView)
             let coordinate = mapView.convert(touchPoint, toCoordinateFrom: mapView)
 
-            // Dynamic tap selection threshold based on zoom level
-            let zoomLevel = parent.region.span.latitudeDelta
-            let selectionThreshold = zoomLevel * 0.02 // Adjust threshold dynamically
+            // Define a more precise selection threshold
+            let selectionThreshold: Double = 0.0005 // More precise threshold
 
-            if let existingPin = parent.pins.first(where: { pin in
+            // Check if a pin exists at the tapped location
+            if let existingPin = self.parent.pins.first(where: { pin in
                 let distance = hypot(pin.coordinate.latitude - coordinate.latitude,
                                      pin.coordinate.longitude - coordinate.longitude)
                 return distance < selectionThreshold
@@ -39,20 +39,15 @@ struct MapView: UIViewRepresentable {
                     self.parent.selectedPin = existingPin
                     self.parent.isEditingPin = true
                 }
-                return
+                return // Stop execution to prevent new pin creation
             }
 
+            // If no existing pin was found, create a new one
             DispatchQueue.main.async {
                 let newPin = Pin(title: "", coordinate: coordinate, category: .visited)
-
-                print("New pin created: \(newPin.title) at \(newPin.coordinate)")
-
                 self.parent.pins.append(newPin)
-
                 self.parent.selectedPin = newPin
                 self.parent.isEditingPin = true
-                
-                print("selectedPin set: \(self.parent.selectedPin?.title ?? "None")")
             }
         }
 
