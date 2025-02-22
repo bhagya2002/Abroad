@@ -85,6 +85,7 @@ struct JournalModalView: View {
                                 .background(Color.white)
                                 .cornerRadius(10)
                                 .padding(.bottom, 10)
+                                .accentColor(.black)
 
                             Text("Description")
                                 .font(.headline)
@@ -94,6 +95,7 @@ struct JournalModalView: View {
                                 .frame(minHeight: 150)
                                 .foregroundColor(.black)
                                 .cornerRadius(10)
+                                .accentColor(.black)
                         }
                         .padding()
                         .background(Color.black.opacity(0.9))

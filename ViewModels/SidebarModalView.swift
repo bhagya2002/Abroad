@@ -95,10 +95,8 @@ struct SidebarModalView: View {
     private func createTransportModePieChart() -> some View {
         let transportData = getTransportEmissions()
         let colors: [Color] = [.blue, .green, .red, .orange, .purple, .yellow]
-        // Sort the dictionary entries by key for a consistent order.
         let sortedData = transportData.sorted { $0.key < $1.key }
         
-        // Create a mapping from transport key to a fixed color.
         var colorMapping: [String: Color] = [:]
         for (index, element) in sortedData.enumerated() {
             colorMapping[element.key] = colors[index % colors.count]
@@ -109,37 +107,44 @@ struct SidebarModalView: View {
                 .font(.headline)
                 .padding(.leading, 5)
             
-            HStack {
-                // Left side: Pie Chart
-                ZStack {
-                    ForEach(Array(sortedData.enumerated()), id: \.offset) { index, element in
-                        PieSliceView(
-                            startAngle: angle(for: index, in: sortedData),
-                            endAngle: angle(for: index + 1, in: sortedData),
-                            color: colors[index % colors.count]
-                        )
-                    }
-                }
-                .frame(width: 250, height: 250)
-                
-                // Right side: Total emissions and legend
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("Total Transport Emissions: **\(Int(transportData.values.reduce(0, +))) kg CO₂**")
-                        .font(.subheadline)
-                        .foregroundColor(.black)
-                    
-                    ForEach(transportData.sorted(by: { $0.value > $1.value }), id: \.key) { key, value in
-                        HStack {
-                            Circle()
-                                .fill(colorMapping[key] ?? .black)
-                                .frame(width: 10, height: 10)
-                            Text("\(key): \(Int(value)) kg CO₂")
-                                .font(.subheadline)
-                                .foregroundColor(.black)
+            if transportData.isEmpty {
+                Text("No transport data available. Add a trip with transport entries to view your transport breakdown.")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                    .padding(.top, 5)
+            } else {
+                HStack {
+                    // Left side: Pie Chart
+                    ZStack {
+                        ForEach(Array(sortedData.enumerated()), id: \.offset) { index, element in
+                            PieSliceView(
+                                startAngle: angle(for: index, in: sortedData),
+                                endAngle: angle(for: index + 1, in: sortedData),
+                                color: colors[index % colors.count]
+                            )
                         }
                     }
+                    .frame(width: 250, height: 250)
+                    
+                    // Right side: Total emissions and legend
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Total Transport Emissions: **\(Int(transportData.values.reduce(0, +))) kg CO₂**")
+                            .font(.subheadline)
+                            .foregroundColor(.black)
+                        
+                        ForEach(transportData.sorted(by: { $0.value > $1.value }), id: \.key) { key, value in
+                            HStack {
+                                Circle()
+                                    .fill(colorMapping[key] ?? .black)
+                                    .frame(width: 10, height: 10)
+                                Text("\(key): \(Int(value)) kg CO₂")
+                                    .font(.subheadline)
+                                    .foregroundColor(.black)
+                            }
+                        }
+                    }
+                    .padding(.leading, 5)
                 }
-                .padding(.leading, 5)
             }
         }
         .padding()
@@ -228,8 +233,12 @@ struct SidebarModalView: View {
         VStack(alignment: .leading) {
             Text("🏆 Eco Badges Earned")
                 .font(.headline)
-
-            if getEcoBadges().isEmpty {
+            
+            if viewModel.pins.isEmpty {
+                Text("No trips added yet. Add a trip to start earning badges!")
+                    .foregroundColor(.gray)
+                    .padding(.top, 5)
+            } else if getEcoBadges().isEmpty {
                 Text("No badges earned yet. Keep traveling sustainably to unlock achievements! 🌱")
                     .foregroundColor(.gray)
                     .padding(.top, 5)
@@ -316,7 +325,6 @@ struct SidebarModalView: View {
                 .font(.headline)
             Text("Locations Saved: **\(viewModel.pins.count)**")
             Text("Next Trip: **\(viewModel.pins.first(where: { $0.category == .future })?.title ?? "Plan one!")**")
-            Text("CO₂ Saved: **\(calculateCarbonSavings()) kg**")
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)

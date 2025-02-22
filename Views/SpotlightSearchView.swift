@@ -38,7 +38,7 @@ struct SpotlightSearchView: View {
 
                     TextField("", text: $searchText)
                         .placeholder(when: searchText.isEmpty) {
-                            Text("Search Locations, Rating = 1-5, Category = Visited/Future Trip Plan...")
+                            Text("Search Pin Location Name, Rating = 1-5, Category = Visited/Future Trip Plan")
                                 .foregroundColor(Color.white.opacity(0.8))
                         }
                         .foregroundColor(.white)

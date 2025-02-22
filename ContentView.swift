@@ -22,9 +22,47 @@ class PinsViewModel: ObservableObject {
 
     func loadPins() {
         if let savedData = UserDefaults.standard.data(forKey: storageKey),
-           let decoded = try? JSONDecoder().decode([Pin] .self, from: savedData) {
+           let decoded = try? JSONDecoder().decode([Pin].self, from: savedData) {
             self.pins = decoded
         }
+    }
+}
+
+struct CarbonFootprintProgressBar: View {
+    @ObservedObject var viewModel: PinsViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+//            Text("Your maximum carbon emission allowance")
+//                .font(.headline)
+            HStack {
+                Text("Max carbon emission goal")
+                    .font(.headline)
+                ProgressView(value: getTotalEmissions(), total: getUserCarbonGoal())
+                    .progressViewStyle(LinearProgressViewStyle())
+                    .frame(height: 10)
+                    .accentColor(.black)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity) // makes the view span the full width
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+        .padding(.horizontal)
+    }
+    
+    func getTotalEmissions() -> Double {
+        viewModel.pins.flatMap { $0.transportEntries }
+            .compactMap { entry in
+                let emissionFactor = CarbonEmissionFactors.emissionsPerKm[entry.mode] ?? 0
+                return (Double(entry.distance) ?? 0) * emissionFactor
+            }
+            .reduce(0, +)
+    }
+    
+    func getUserCarbonGoal() -> Double {
+        // Replace with your own logic or property; for now, using a constant.
+        return 5000.0
     }
 }
 
@@ -46,7 +84,6 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            
             Color.black.opacity(0.9).ignoresSafeArea() // Set background to black
 
             HStack {
@@ -68,12 +105,12 @@ struct ContentView: View {
                     HStack(spacing: 0) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Welcome to Abroad")
-                                .font(.largeTitle) // Increased from .title to .largeTitle
+                                .font(.largeTitle)
                                 .bold()
                                 .foregroundColor(.white)
 
                             Text("Pin your travels, reduce your carbon footprint")
-                                .font(.title2) // Increased from .subheadline to .title2
+                                .font(.title2)
                                 .foregroundColor(.gray)
                         }
                         .padding(.leading, 20)
@@ -89,7 +126,7 @@ struct ContentView: View {
                                 Image(systemName: "chart.bar.doc.horizontal")
                                     .resizable()
                                     .frame(width: 30, height: 30)
-                                    .foregroundColor(.white) // Adjusted icon color
+                                    .foregroundColor(.white)
                             }
 
                             Button(action: {
@@ -98,7 +135,7 @@ struct ContentView: View {
                                 Image(systemName: "book.closed")
                                     .resizable()
                                     .frame(width: 30, height: 30)
-                                    .foregroundColor(.white) // Adjusted icon color
+                                    .foregroundColor(.white)
                             }
 
                             Button(action: {
@@ -109,13 +146,16 @@ struct ContentView: View {
                                 Image(systemName: "magnifyingglass")
                                     .resizable()
                                     .frame(width: 30, height: 30)
-                                    .foregroundColor(.white) // Adjusted icon color
+                                    .foregroundColor(.white)
                             }
                         }
                         .padding(.trailing, 15)
                     }
                     .frame(height: UIScreen.main.bounds.height * 0.1)
                     .foregroundColor(.white).opacity(0.88)
+                    
+                    CarbonFootprintProgressBar(viewModel: viewModel)
+                        .padding(.vertical, 10)
 
                     // Map Section
                     ZStack {
@@ -137,13 +177,13 @@ struct ContentView: View {
                             .animation(.easeInOut, value: viewModel.pins.isEmpty)
                         }
                     }
-                    .frame(height: UIScreen.main.bounds.height * 0.85)
+                    .frame(height: UIScreen.main.bounds.height * 0.83)
                     .padding(.bottom, 15)
                     .padding(.horizontal, 15)
                     .cornerRadius(20)
                 }
             }
-            
+
             if isSidebarPresented {
                 SidebarModalView(isPresented: $isSidebarPresented, viewModel: viewModel)
                     .opacity(isSidebarPresented ? 1 : 0)
@@ -180,76 +220,126 @@ struct ContentView: View {
             }
         }
         .overlay(
-                    Group {
-                        if isEditingPin, let index = selectedPinIndex(), index < viewModel.pins.count {
-                            ZStack {
-                                Color.black.opacity(0.3)
-                                    .edgesIgnoringSafeArea(.all)
-                                    .onTapGesture {
-                                        handlePinDismiss(index: index)
-                                    }
-
-                                PinEditView(
-                                    pin: $viewModel.pins[index],
-                                    isPresented: $isEditingPin,
-                                    deletePin: {
-                                        isEditingPin = false
-                                        selectedPin = nil
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                            if index < viewModel.pins.count {
-                                                viewModel.pins.remove(at: index)
-                                            }
-                                            viewModel.savePins()
-                                        }
-                                    },
-                                    startDate: Binding(
-                                        get: { viewModel.pins[index].startDate ?? Date() },
-                                        set: { viewModel.pins[index].startDate = $0 }
-                                    ),
-                                    endDate: Binding(
-                                        get: { viewModel.pins[index].endDate ?? Date() },
-                                        set: { viewModel.pins[index].endDate = $0 }
-                                    ),
-                                    viewModel: viewModel
-                                )
-                                .frame(width: UIScreen.main.bounds.width * 0.75, height: UIScreen.main.bounds.height * 0.5)
-                                .background(Color(.systemBackground))
-                                .cornerRadius(20)
-                                .shadow(radius: 10)
+            Group {
+                if isEditingPin, let index = selectedPinIndex(), index < viewModel.pins.count {
+                    ZStack {
+                        Color.black.opacity(0.3)
+                            .edgesIgnoringSafeArea(.all)
+                            .onTapGesture {
+                                handlePinDismiss(index: index)
                             }
-                            .transition(.scale)
-                            .animation(.easeInOut, value: isEditingPin)
-                        }
-                        
-                        if isJournalingPresented {
-                            JournalModalView(isPresented: $isJournalingPresented)
-                                .opacity(isJournalingPresented ? 1 : 0) // Ensure full fade effect
-                                .animation(.easeInOut(duration: 0.2), value: isJournalingPresented)
-                        }
+
+                        PinEditView(
+                            pin: $viewModel.pins[index],
+                            isPresented: $isEditingPin,
+                            deletePin: {
+                                isEditingPin = false
+                                selectedPin = nil
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                    if index < viewModel.pins.count {
+                                        viewModel.pins.remove(at: index)
+                                    }
+                                    viewModel.savePins()
+                                }
+                            },
+                            startDate: Binding(
+                                get: { viewModel.pins[index].startDate ?? Date() },
+                                set: { viewModel.pins[index].startDate = $0 }
+                            ),
+                            endDate: Binding(
+                                get: { viewModel.pins[index].endDate ?? Date() },
+                                set: { viewModel.pins[index].endDate = $0 }
+                            ),
+                            viewModel: viewModel
+                        )
+                        .frame(width: UIScreen.main.bounds.width * 0.75, height: UIScreen.main.bounds.height * 0.5)
+                        .background(Color(.systemBackground))
+                        .cornerRadius(20)
+                        .shadow(radius: 10)
                     }
-                )
-            }
-
-            private func selectedPinIndex() -> Int? {
-                guard let selectedPin = selectedPin else { return nil }
-                return viewModel.pins.firstIndex { $0.id == selectedPin.id }
-            }
-
-            private func handlePinDismiss(index: Int) {
-                let pin = viewModel.pins[index]
-                if pin.title.trimmingCharacters(in: .whitespaces).isEmpty &&
-                    pin.startDate == nil &&
-                    pin.endDate == nil &&
-                    pin.placesVisited.isEmpty {
-
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                        if index < viewModel.pins.count {
-                            viewModel.pins.remove(at: index)
-                        }
-                        viewModel.savePins()
-                    }
+                    .transition(.scale)
+                    .animation(.easeInOut, value: isEditingPin)
                 }
-                isEditingPin = false
+
+                if isJournalingPresented {
+                    JournalModalView(isPresented: $isJournalingPresented)
+                        .opacity(isJournalingPresented ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.2), value: isJournalingPresented)
+                }
+            }
+        )
+        .overlay(
+            Group {
+                if !isSidebarPresented && !isJournalingPresented && !isSpotlightPresented {
+                    VStack(spacing: 16) {
+                        Button(action: {
+                            zoomIn()
+                        }) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 28, weight: .bold))
+                                .frame(width: 60, height: 60)
+                                .foregroundColor(.white)
+                                .background(Color(UIColor.black))
+                                .clipShape(Circle())
+                        }
+                        Button(action: {
+                            zoomOut()
+                        }) {
+                            Image(systemName: "minus")
+                                .font(.system(size: 28, weight: .bold))
+                                .frame(width: 60, height: 60)
+                                .foregroundColor(.white)
+                                .background(Color(UIColor.black))
+                                .clipShape(Circle())
+                        }
+                    }
+                    .padding(.bottom, 30)
+                    .padding(.trailing, 40)
+                }
+            },
+            alignment: .bottomTrailing
+        )
+    }
+    
+    private func selectedPinIndex() -> Int? {
+        guard let selectedPin = selectedPin else { return nil }
+        return viewModel.pins.firstIndex { $0.id == selectedPin.id }
+    }
+    
+    private func handlePinDismiss(index: Int) {
+        let pin = viewModel.pins[index]
+        if pin.title.trimmingCharacters(in: .whitespaces).isEmpty &&
+            pin.startDate == nil &&
+            pin.endDate == nil &&
+            pin.placesVisited.isEmpty {
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                if index < viewModel.pins.count {
+                    viewModel.pins.remove(at: index)
+                }
+                viewModel.savePins()
+            }
+        }
+        isEditingPin = false
+    }
+    
+    // MARK: - Zoom Control Methods
+    private func zoomIn() {
+        // Optionally, clamp to a minimum if needed.
+        let minLatitudeDelta: CLLocationDegrees = 0.005
+        let minLongitudeDelta: CLLocationDegrees = 0.005
+        let newLatitudeDelta = max(region.span.latitudeDelta / 2.0, minLatitudeDelta)
+        let newLongitudeDelta = max(region.span.longitudeDelta / 2.0, minLongitudeDelta)
+        region.span = MKCoordinateSpan(latitudeDelta: newLatitudeDelta, longitudeDelta: newLongitudeDelta)
+    }
+
+    private func zoomOut() {
+        // Clamp the zoom-out to a maximum value to prevent crashes.
+        let maxLatitudeDelta: CLLocationDegrees = 180.0
+        let maxLongitudeDelta: CLLocationDegrees = 360.0
+        let newLatitudeDelta = min(region.span.latitudeDelta * 2.0, maxLatitudeDelta)
+        let newLongitudeDelta = min(region.span.longitudeDelta * 2.0, maxLongitudeDelta)
+        region.span = MKCoordinateSpan(latitudeDelta: newLatitudeDelta, longitudeDelta: newLongitudeDelta)
     }
 }
 
@@ -258,18 +348,18 @@ struct WelcomePanelView: View {
         VStack {
             HStack {
                 VStack(alignment: .leading) {
-                    Text("Welcome to Abroad, start your journey!")
+                    Text("📍 Get started with your journey!")
                         .font(.headline)
-                        .foregroundColor(.white) // Adjusted text color
+                        .foregroundColor(.white)
 
-                    Text("📍 Tap anywhere on the map to add a new location.")
+                    Text("      Tap anywhere on the map to add a new location.")
                         .foregroundColor(.gray)
                 }
 
                 Spacer()
             }
             .padding()
-            .background(Color.black.opacity(0.75)) // Darker background
+            .background(Color.black.opacity(0.75))
             .cornerRadius(12)
             .shadow(radius: 4)
             .padding()
