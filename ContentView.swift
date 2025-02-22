@@ -72,7 +72,7 @@ struct ContentView: View {
                                 .bold()
                                 .foregroundColor(.white)
 
-                            Text("Pin your travels, reduce your footprint")
+                            Text("Pin your travels, reduce your carbon footprint")
                                 .font(.title2) // Increased from .subheadline to .title2
                                 .foregroundColor(.gray)
                         }

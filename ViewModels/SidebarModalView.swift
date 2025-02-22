@@ -5,7 +5,6 @@
 //  Created by Bhagya Patel on 2025-02-20.
 //
 
-
 import SwiftUI
 import Charts
 
@@ -14,65 +13,65 @@ struct SidebarModalView: View {
     @ObservedObject var viewModel: PinsViewModel
 
     var body: some View {
-            ZStack {
-                Color.black.opacity(0.3)
-                    .ignoresSafeArea()
-                    .onTapGesture {
+        ZStack {
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+                .onTapGesture {
+                    withAnimation { isPresented = false }
+                }
+
+            Rectangle()
+                .fill(Material.ultraThinMaterial)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                HStack {
+                    Text("My Travel Insights")
+                        .font(.title)
+                        .bold()
+                        .foregroundColor(.white)
+
+                    Spacer()
+
+                    Button(action: {
                         withAnimation { isPresented = false }
-                    }
-
-                Rectangle()
-                    .fill(Material.ultraThinMaterial)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    HStack {
-                        Text("My Travel Insights")
-                            .font(.title)
-                            .bold()
-                            .foregroundColor(.white)
-
-                        Spacer()
-
-                        Button(action: {
-                            withAnimation { isPresented = false }
-                        }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.gray)
-                                .imageScale(.large)
-                        }
-                    }
-                    .padding()
-                    .background(Color.black.opacity(0.9))
-
-                    Divider()
-                        .background(Color.white.opacity(0.2))
-                        .padding(.horizontal, 10)
-
-                    ScrollView {
-                        VStack(spacing: 15) {
-                            createCarbonProgressView()
-                            createEcoBadgesView()
-                            createRealWorldImpactView()
-//                            createTravelEfficiencyScore()
-                            createGlobalRankView()
-                            createFlightImpactWarning()
-                            createTransportModePieChart()
-                            createTransportInsightsView()
-                            createMostVisitedPlacesView()
-                            createLocationsSummaryView()
-                        }
-                        .padding()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                            .imageScale(.large)
                     }
                 }
-                .frame(width: UIScreen.main.bounds.width * 0.75, height: UIScreen.main.bounds.height * 0.75)
+                .padding()
                 .background(Color.black.opacity(0.9))
-                .cornerRadius(20)
-                .shadow(radius: 10)
-                .onTapGesture { }
+
+                Divider()
+                    .background(Color.white.opacity(0.2))
+                    .padding(.horizontal, 10)
+
+                ScrollView {
+                    VStack(spacing: 15) {
+                        createCarbonProgressView()
+                        createEcoBadgesView()
+                        createRealWorldImpactView()
+//                      createTravelEfficiencyScore()
+                        createGlobalRankView()
+                        createFlightImpactWarning()
+                        createTransportModePieChart()
+                        createTransportInsightsView()
+                        createMostVisitedPlacesView()
+                        createLocationsSummaryView()
+                    }
+                    .padding()
+                }
             }
+            .frame(width: UIScreen.main.bounds.width * 0.75, height: UIScreen.main.bounds.height * 0.75)
+            .background(Color.black.opacity(0.9))
+            .cornerRadius(20)
+            .shadow(radius: 10)
+            .onTapGesture { }
         }
+    }
 
     // MARK: - Sidebar Sections
 
@@ -84,6 +83,7 @@ struct SidebarModalView: View {
                 .progressViewStyle(LinearProgressViewStyle())
                 .frame(height: 10)
                 .padding(.bottom, 5)
+                .accentColor(.black)
             Text("⚠️ **\(Int(getTotalEmissions())) kg CO₂ used** / \(Int(getUserCarbonGoal())) kg CO₂ goal")
                 .font(.subheadline)
                 .foregroundColor(.gray)
@@ -95,44 +95,64 @@ struct SidebarModalView: View {
     private func createTransportModePieChart() -> some View {
         let transportData = getTransportEmissions()
         let colors: [Color] = [.blue, .green, .red, .orange, .purple, .yellow]
-
+        // Sort the dictionary entries by key for a consistent order.
+        let sortedData = transportData.sorted { $0.key < $1.key }
+        
+        // Create a mapping from transport key to a fixed color.
+        var colorMapping: [String: Color] = [:]
+        for (index, element) in sortedData.enumerated() {
+            colorMapping[element.key] = colors[index % colors.count]
+        }
+        
         return VStack(alignment: .leading) {
             Text("Your Transport Breakdown")
                 .font(.headline)
                 .padding(.leading, 5)
-
-            ZStack {
-                ForEach(Array(transportData.enumerated()), id: \.offset) { index, data in
-                    PieSliceView(
-                        startAngle: angle(for: index, in: transportData),
-                        endAngle: angle(for: index + 1, in: transportData),
-                        color: colors[index % colors.count]
-                    )
-                }
-            }
-            .frame(width: 250, height: 250)
-
-            Text("Total Transport Emissions: **\(Int(transportData.values.reduce(0, +))) kg CO₂**")
-                .font(.subheadline)
-                .foregroundColor(.black)
-
-            VStack(alignment: .leading, spacing: 5) {
-                ForEach(transportData.sorted(by: { $0.value > $1.value }), id: \.key) { key, value in
-                    HStack {
-                        Circle()
-                            .fill(colors[transportData.keys.sorted().firstIndex(of: key) ?? 0 % colors.count])
-                            .frame(width: 10, height: 10)
-                        Text("\(key): \(Int(value)) kg CO₂")
-                            .font(.subheadline)
-                            .foregroundColor(.black)
+            
+            HStack {
+                // Left side: Pie Chart
+                ZStack {
+                    ForEach(Array(sortedData.enumerated()), id: \.offset) { index, element in
+                        PieSliceView(
+                            startAngle: angle(for: index, in: sortedData),
+                            endAngle: angle(for: index + 1, in: sortedData),
+                            color: colors[index % colors.count]
+                        )
                     }
                 }
+                .frame(width: 250, height: 250)
+                
+                // Right side: Total emissions and legend
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Total Transport Emissions: **\(Int(transportData.values.reduce(0, +))) kg CO₂**")
+                        .font(.subheadline)
+                        .foregroundColor(.black)
+                    
+                    ForEach(transportData.sorted(by: { $0.value > $1.value }), id: \.key) { key, value in
+                        HStack {
+                            Circle()
+                                .fill(colorMapping[key] ?? .black)
+                                .frame(width: 10, height: 10)
+                            Text("\(key): \(Int(value)) kg CO₂")
+                                .font(.subheadline)
+                                .foregroundColor(.black)
+                        }
+                    }
+                }
+                .padding(.leading, 5)
             }
-            .padding(.leading, 5)
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+    }
+
+    // Update the angle function to work with the sorted array.
+    private func angle(for index: Int, in data: [(key: String, value: Double)]) -> Angle {
+        let total = data.reduce(0) { $0 + $1.value }
+        guard total != 0 else { return .degrees(0) }
+        let sum = data.prefix(index).reduce(0) { $0 + $1.value }
+        return .degrees((sum / total) * 360)
     }
 
     private func createTravelEfficiencyScore() -> some View {
@@ -237,34 +257,6 @@ struct SidebarModalView: View {
         .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
     }
 
-        // MARK: - Pie Chart Helper Functions
-        private func angle(for index: Int, in data: [String: Double]) -> Angle {
-            let total = data.values.reduce(0, +)
-            let sum = data.values.prefix(index).reduce(0, +)
-            return .degrees((sum / total) * 360)
-        }
-
-        struct PieSliceView: View {
-            var startAngle: Angle
-            var endAngle: Angle
-            var color: Color
-
-            var body: some View {
-                GeometryReader { geometry in
-                    Path { path in
-                        let width = min(geometry.size.width, geometry.size.height)
-                        let center = CGPoint(x: width / 2, y: width / 2)
-                        let radius = width / 2
-
-                        path.move(to: center)
-                        path.addArc(center: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: false)
-                        path.closeSubpath()
-                    }
-                    .fill(color)
-                }
-            }
-        }
-    
     private func createRealWorldImpactView() -> some View {
         VStack(alignment: .leading, spacing: 5) {
             Text("🌱 Real-World Impact")
@@ -491,5 +483,33 @@ struct SidebarModalView: View {
 
     private func getSavingsOverTime() -> [Double] {
         return [50, 100, 200, 150, 300, 250] // Placeholder
+    }
+    
+    // MARK: - Pie Chart Helper Functions
+    private func angle(for index: Int, in data: [String: Double]) -> Angle {
+        let total = data.values.reduce(0, +)
+        let sum = data.values.prefix(index).reduce(0, +)
+        return .degrees((sum / total) * 360)
+    }
+
+    struct PieSliceView: View {
+        var startAngle: Angle
+        var endAngle: Angle
+        var color: Color
+
+        var body: some View {
+            GeometryReader { geometry in
+                Path { path in
+                    let width = min(geometry.size.width, geometry.size.height)
+                    let center = CGPoint(x: width / 2, y: width / 2)
+                    let radius = width / 2
+
+                    path.move(to: center)
+                    path.addArc(center: center, radius: radius, startAngle: startAngle, endAngle: endAngle, clockwise: false)
+                    path.closeSubpath()
+                }
+                .fill(color)
+            }
+        }
     }
 }

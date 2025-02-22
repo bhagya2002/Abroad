@@ -20,7 +20,7 @@ struct MapView: UIViewRepresentable {
         var pendingZoomWorkItem: DispatchWorkItem?
         
         // Use a larger span so that the zoom is less aggressive.
-        let zoomedSpan = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+        let zoomedSpan = MKCoordinateSpan(latitudeDelta: 0.14, longitudeDelta: 0.14)
         // Use a threshold in screen points.
         let selectionPointThreshold: CGFloat = 20
         // Threshold to compare coordinates (in degrees).
@@ -136,6 +136,10 @@ struct MapView: UIViewRepresentable {
         let mapView = MKMapView()
         mapView.region = region
         mapView.delegate = context.coordinator
+        
+        // Apply system dark appearance.
+        mapView.overrideUserInterfaceStyle = .dark
+        mapView.mapType = .mutedStandard
         
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)))
         tapGesture.delegate = context.coordinator

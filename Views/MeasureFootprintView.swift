@@ -76,7 +76,7 @@ struct MeasureFootprintView: View {
                             }
                             .pickerStyle(MenuPickerStyle())
                             .frame(width: 180)
-                            .accentColor(.black)
+                            .accentColor(.white)
 
                             TextField("Distance (km)", text: $entry.distance)
                                 .keyboardType(.decimalPad)
@@ -160,7 +160,7 @@ struct MeasureFootprintView: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(.black)))
 
                     if projectedSavings > 0 {
                         VStack(alignment: .leading) {
@@ -173,7 +173,7 @@ struct MeasureFootprintView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
+                        .background(RoundedRectangle(cornerRadius: 12).fill(Color(.black)))
                     }
 
                     Chart {
@@ -183,6 +183,8 @@ struct MeasureFootprintView: View {
                         }
                     }
                     .frame(height: 250)
+                    .padding()
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(.black)))
 
                     VStack(alignment: .leading) {
                         Text("🌱 Real-World Impact")
@@ -196,7 +198,7 @@ struct MeasureFootprintView: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
+                    .background(RoundedRectangle(cornerRadius: 12).fill(Color(.black)))
                     
                     displayCarbonOffsetRecommendations()
 //                    displayTravelEfficiencyScore()
@@ -287,7 +289,7 @@ struct MeasureFootprintView: View {
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
+            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.black)))
         }
 
         func displayTravelEfficiencyScore() -> some View {
