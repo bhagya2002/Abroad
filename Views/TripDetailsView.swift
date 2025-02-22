@@ -28,8 +28,10 @@ struct TripDetailsView: View {
                     Text("Trip Dates").font(.headline)
                     DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
                         .onChange(of: startDate) { _ in validateDates() }
+                        .accentColor(.black) // Calendar accent color set to black
                     DatePicker("End Date", selection: $endDate, displayedComponents: .date)
                         .onChange(of: endDate) { _ in validateDates() }
+                        .accentColor(.black) // Calendar accent color set to black
                     if let dateError = dateError {
                         Text(dateError)
                             .font(.footnote)
@@ -43,8 +45,16 @@ struct TripDetailsView: View {
                 // Trip Rating Section
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Trip Rating").font(.headline)
-                    Slider(value: Binding(get: { Double(pin.tripRating ?? 0) }, set: { pin.tripRating = Int($0) }), in: 0...5, step: 1)
-                        .padding(.horizontal)
+                    Slider(
+                        value: Binding(
+                            get: { Double(pin.tripRating ?? 0) },
+                            set: { pin.tripRating = Int($0) }
+                        ),
+                        in: 0...5,
+                        step: 1
+                    )
+                    .padding(.horizontal)
+                    .accentColor(.gray) // Slider accent color set to gray
                     HStack {
                         ForEach(0...5, id: \.self) { rating in
                             Text(rating == 0 ? "No Rating" : "\(rating)")
@@ -64,6 +74,7 @@ struct TripDetailsView: View {
                             .foregroundColor(.green)
                         
                         TextField("Enter cost ($)", text: $budgetText)
+                            .accentColor(.gray) // TextField accent color set to gray
                             .keyboardType(.decimalPad)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .onChange(of: budgetText) { newValue in
@@ -113,7 +124,11 @@ struct TripDetailsView: View {
                     }
                     .padding(.horizontal)
 
-                    PhotosPicker(selection: $photoPickerItems, maxSelectionCount: 10 - pin.imageFilenames.count, matching: .images) {
+                    PhotosPicker(
+                        selection: $photoPickerItems,
+                        maxSelectionCount: 10 - pin.imageFilenames.count,
+                        matching: .images
+                    ) {
                         HStack {
                             Image(systemName: "plus")
                             Text("Select Photos")
@@ -136,7 +151,6 @@ struct TripDetailsView: View {
         .onAppear {
             startDate = pin.startDate ?? Date()
             endDate = pin.endDate ?? Date()
-
             if let budget = pin.tripBudget {
                 budgetText = String(format: "%.2f", budget)
             }
@@ -203,8 +217,8 @@ struct ImageViewer: View {
                 .resizable()
                 .scaledToFit()
                 .onTapGesture {
-                dismiss()
-            }
+                    dismiss()
+                }
         }
     }
 }

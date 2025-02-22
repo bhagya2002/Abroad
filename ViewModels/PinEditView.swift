@@ -27,55 +27,60 @@ struct PinEditView: View {
     @State private var showingFullScreenImage: IdentifiableImage?
 
     var body: some View {
-            NavigationStack {
-                Form {
-                    TitleInputView(pin: $pin)
-                    
-                    CategoryPickerView(selectedCategory: $pin.category)
+        NavigationStack {
+            Form {
+                TitleInputView(pin: $pin)
+                
+                CategoryPickerView(selectedCategory: $pin.category)
 
-                    if pin.category != .none {
-                        if pin.category == .visited {
-                            Picker("Select Tab", selection: $selectedTab) {
-                                Text("Trip Details").tag(0)
-                                Text("Measure Footprint").tag(1)
-                            }
-                            .pickerStyle(SegmentedPickerStyle())
-                            .padding()
-
-                            if selectedTab == 0 {
-                                TripDetailsView(pin: $pin, startDate: $startDate, endDate: $endDate)
-                            } else {
-                                MeasureFootprintView(pin: $pin)
-                            }
+                if pin.category != .none {
+                    if pin.category == .visited {
+                        Picker("Select Tab", selection: $selectedTab) {
+                            Text("Trip Details").tag(0)
+                            Text("Measure Footprint").tag(1)
                         }
+                        .pickerStyle(SegmentedPickerStyle())
+                        .padding()
 
-                        if pin.category == .future {
-                            FutureTripView(pin: $pin, startDate: $startDate)
+                        if selectedTab == 0 {
+                            TripDetailsView(pin: $pin, startDate: $startDate, endDate: $endDate)
+                        } else {
+                            MeasureFootprintView(pin: $pin)
                         }
                     }
 
-                    if !pin.title.isEmpty {
-                        DeleteButtonView(isPresented: $isPresented, deletePin: deletePin, viewModel: viewModel)
+                    if pin.category == .future {
+                        FutureTripView(pin: $pin, startDate: $startDate)
                     }
                 }
-                .formStyle(.grouped)
-                .navigationTitle(pin.title.isEmpty ? "New Pin" : "Edit Pin")
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button(viewModel.pins.contains(where: { $0.id == pin.id }) ? "Cancel" : "Delete") {
-                            if !viewModel.pins.contains(where: { $0.id == pin.id }) || pin.title.isEmpty {
-                                deletePin()
-                            }
-                            isPresented = false
-                        }
-                        .foregroundColor(.red)
-                    }
-                    
-                    ToolbarItem(placement: .confirmationAction) {
-                        SaveButtonView(isPresented: $isPresented, pin: $pin, viewModel: viewModel)
-                    }
+
+                if !pin.title.isEmpty {
+                    DeleteButtonView(isPresented: $isPresented, deletePin: deletePin, viewModel: viewModel)
                 }
             }
+            // Hide the default form background and set a dark appearance.
+            .scrollContentBackground(.hidden)
+            .background(Color.black)
+            .foregroundColor(.white)
+            .formStyle(.grouped)
+            .navigationTitle(pin.title.isEmpty ? "New Pin" : "Edit Pin")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(viewModel.pins.contains(where: { $0.id == pin.id }) ? "Cancel" : "Delete") {
+                        if !viewModel.pins.contains(where: { $0.id == pin.id }) || pin.title.isEmpty {
+                            deletePin()
+                        }
+                        isPresented = false
+                    }
+                    .foregroundColor(.red)
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    SaveButtonView(isPresented: $isPresented, pin: $pin, viewModel: viewModel)
+                }
+            }
+        }
+        .preferredColorScheme(.dark)  // Force dark mode throughout this view.
         .task {
             await loadSavedImages()
         }
@@ -91,7 +96,10 @@ struct PinEditView: View {
             }
         }
         .onDisappear {
-            if pin.title.isEmpty && (pin.startDate == nil || pin.startDate == Date()) && (pin.endDate == nil || pin.endDate == Date()) && pin.placesVisited.isEmpty {
+            if pin.title.isEmpty &&
+                (pin.startDate == nil || pin.startDate == Date()) &&
+                (pin.endDate == nil || pin.endDate == Date()) &&
+                pin.placesVisited.isEmpty {
                 deletePin()
             }
         }
@@ -167,4 +175,3 @@ extension PinsViewModel {
         }
     }
 }
-

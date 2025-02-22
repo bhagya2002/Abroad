@@ -20,6 +20,7 @@ struct TitleInputView: View {
                     Image(systemName: "mappin.and.ellipse").foregroundColor(.blue)
                     TextField("Enter place name", text: $pin.title)
                         .padding(.vertical, 8)
+                        .accentColor(.gray)
                         .onChange(of: pin.title) { _ in validateTitle() }
                 }
                 if let titleError = titleError {

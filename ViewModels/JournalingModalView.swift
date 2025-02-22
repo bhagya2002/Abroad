@@ -69,7 +69,6 @@ struct JournalModalView: View {
                                 DatePicker("", selection: $entryDate, displayedComponents: .date)
                                     .labelsHidden()
                                     .datePickerStyle(CompactDatePickerStyle())
-                                    .padding(4)
                                     .background(Color.white)
                             }
                             .cornerRadius(10)
