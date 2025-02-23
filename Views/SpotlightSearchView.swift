@@ -22,7 +22,7 @@ struct SpotlightSearchView: View {
     var body: some View {
         ZStack {
             Color.black.opacity(0.3)
-                    .ignoresSafeArea()
+                .ignoresSafeArea()
 
             Rectangle()
                 .fill(Material.ultraThinMaterial)
@@ -36,11 +36,12 @@ struct SpotlightSearchView: View {
 
                     TextField("", text: $searchText)
                         .placeholder(when: searchText.isEmpty) {
-                            Text("Search Pin Location Name, Rating = 1-5, Category = Visited/Future Trip Plan")
+                            Text("Search Pin Location Name, Rating = 1-5, Visited/Future Travel Plan")
                                 .foregroundColor(Color.white.opacity(0.8))
                         }
                         .foregroundColor(.white)
                         .padding()
+                        .accentColor(.white)
                         .focused($isTextFieldFocused)
                         .onAppear { isTextFieldFocused = true }
                         .cornerRadius(10)
@@ -86,24 +87,15 @@ struct SpotlightSearchView: View {
                             }
                             .padding()
                             .cornerRadius(10)
+                            .contentShape(Rectangle())
                             .onTapGesture {
                                 withAnimation {
                                     selectedPin = pin
-                                    
-                                    if abs(region.center.latitude - pin.coordinate.latitude) > 0.0001 ||
-                                       abs(region.center.longitude - pin.coordinate.longitude) > 0.0001 {
-                                        
-                                        region = MKCoordinateRegion(
-                                            center: pin.coordinate,
-                                            span: MKCoordinateSpan(latitudeDelta: 0.15, longitudeDelta: 0.15)
-                                        )
-                                    }
-                                    
+                                    region = MKCoordinateRegion(
+                                        center: pin.coordinate,
+                                        span: MKCoordinateSpan(latitudeDelta: 0.15, longitudeDelta: 0.15)
+                                    )
                                     isPresented = false
-                                    
-                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                        NotificationCenter.default.post(name: NSNotification.Name("NavigateToPinEditView"), object: pin)
-                                    }
                                 }
                             }
                         }
@@ -111,7 +103,6 @@ struct SpotlightSearchView: View {
                     .padding()
                     .background(Color.black.opacity(0.90))
                     .clipShape(RoundedCorner(radius: 20, corners: filteredPins.isEmpty ? .allCorners : [.bottomLeft, .bottomRight]))
-
                 }
             }
             .frame(maxHeight: .infinity)

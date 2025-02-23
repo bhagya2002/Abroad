@@ -13,7 +13,7 @@ extension PinsViewModel {
         guard !scores.isEmpty else { return 0 }
         
         let totalScore = scores.reduce(0, +)
-        let averageScore = totalScore / scores.count // ✅ No decimals
+        let averageScore = totalScore / scores.count
 
         return averageScore
     }

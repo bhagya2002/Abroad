@@ -224,11 +224,6 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            // Check if we've already reset the app data
-//            if !UserDefaults.standard.bool(forKey: "hasResetApp") {
-//                resetAppData()
-//                UserDefaults.standard.set(true, forKey: "hasResetApp")
-//            }
 //            resetAppData()
             
             NotificationCenter.default.addObserver(forName: NSNotification.Name("ShowAnalysisNotification"), object: nil, queue: .main) { _ in
@@ -260,7 +255,6 @@ struct ContentView: View {
                     ZStack {
                         Color.black.opacity(0.3)
                             .edgesIgnoringSafeArea(.all)
-//                            .onTapGesture { handlePinDismiss(index: index) }
                         PinEditView(
                             pin: $viewModel.pins[index],
                             isPresented: $isEditingPin,

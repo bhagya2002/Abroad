@@ -57,7 +57,7 @@ struct Pin: Identifiable, Codable, Equatable {
     }
     
     static func == (lhs: Pin, rhs: Pin) -> Bool {
-        return lhs.id == rhs.id // Compare by unique ID
+        return lhs.id == rhs.id
     }
 
     // MARK: - Initializers

@@ -60,7 +60,7 @@ struct SidebarModalView: View {
                         createFlightImpactWarning()
                         createTransportModePieChart()
                         createTransportInsightsView()
-                        createMostVisitedPlacesView()
+//                        createMostVisitedPlacesView()
                         createLocationsSummaryView()
                     }
                     .padding()

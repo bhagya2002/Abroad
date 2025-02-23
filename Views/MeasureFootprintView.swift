@@ -80,7 +80,7 @@ struct MeasureFootprintView: View {
                             TextField("Distance (km)", text: $entry.distance)
                                 .keyboardType(.decimalPad)
                                 .padding()
-                                .accentColor(.black)
+                                .accentColor(.white)
                                 .background(Color(.black))
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -217,10 +217,10 @@ struct MeasureFootprintView: View {
                     VStack(alignment: .leading) {
                         Text("🌱 Real-World Impact")
                             .font(.headline)
-                        Text("🌳 Your carbon savings equal **planting \(Int(totalEmissions / 20)) trees!**")
+                        Text("Your carbon savings equal **planting \(Int(totalEmissions / 20)) 🌳!**")
                             .lineLimit(nil)
                             .fixedSize(horizontal: false, vertical: true)
-                        Text("🚗 Equivalent to **removing \(Int(totalEmissions / 2)) cars from the road for a day!**")
+                        Text("Equivalent to **removing \(Int(totalEmissions / 2)) 🚗 from the road for a day!**")
                             .lineLimit(nil)
                             .fixedSize(horizontal: false, vertical: true)
                     }

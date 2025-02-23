@@ -71,6 +71,7 @@ struct JournalModalView: View {
                                     .labelsHidden()
                                     .datePickerStyle(CompactDatePickerStyle())
                                     .background(Color.white)
+                                    .accentColor(.black)
                             }
                             .cornerRadius(10)
                             .padding(.trailing, 10)
@@ -119,27 +120,30 @@ struct JournalModalView: View {
                                 ScrollView {
                                     VStack(spacing: 10) {
                                         ForEach(savedEntries) { entry in
-                                            Button(action: { loadEntry(entry) }) {
-                                                HStack {
-                                                    VStack(alignment: .leading, spacing: 5) {
-                                                        Text(entry.title.isEmpty ? "Untitled Entry" : entry.title)
-                                                            .font(.headline)
-                                                            .foregroundColor(.white)
-                                                        Text(formatDate(entry.date))
-                                                            .foregroundColor(.gray)
-                                                    }
-                                                    Spacer()
-                                                    Button(action: { deleteEntry(entry) }) {
-                                                        Image(systemName: "trash")
-                                                            .foregroundColor(.red)
-                                                            .padding()
-                                                    }
+                                            HStack {
+                                                VStack(alignment: .leading, spacing: 5) {
+                                                    Text(entry.title.isEmpty ? "Untitled Entry" : entry.title)
+                                                        .font(.headline)
+                                                        .foregroundColor(.white)
+                                                    Text(formatDate(entry.date))
+                                                        .foregroundColor(.gray)
                                                 }
-                                                .padding()
-                                                .frame(maxWidth: .infinity, alignment: .leading)
-                                                .background(Color.black.opacity(0.9))
-                                                .cornerRadius(10)
+                                                Spacer()
+                                                Button(action: { loadEntry(entry) }) {
+                                                    Image(systemName: "pencil")
+                                                        .foregroundColor(.blue)
+                                                        .padding()
+                                                }
+                                                Button(action: { deleteEntry(entry) }) {
+                                                    Image(systemName: "trash")
+                                                        .foregroundColor(.red)
+                                                        .padding()
+                                                }
                                             }
+                                            .padding()
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .background(Color.black.opacity(0.9))
+                                            .cornerRadius(10)
                                         }
                                     }
                                     .padding(.vertical, 5)
@@ -152,22 +156,8 @@ struct JournalModalView: View {
                 }
                 
                 Button(action: {
-                    clearFields()
-                }) {
-                    Label("New Entry", systemImage: "plus.circle")
-                        .font(.headline)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                        .shadow(radius: 5)
-                }
-                .padding(.horizontal)
-                .padding(.bottom, 10)
-
-                Button(action: {
-                    if journalTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || journalEntry.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    if journalTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
+                       journalEntry.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         errorMessage = "Please enter a title and description."
                         return
                     }
@@ -175,7 +165,7 @@ struct JournalModalView: View {
                     saveJournalEntry()
                     clearFields()
                 }) {
-                    Text("Save Entry")
+                    Text("Save")
                         .bold()
                         .frame(maxWidth: .infinity)
                         .padding()

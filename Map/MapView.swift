@@ -22,7 +22,7 @@ struct MapView: UIViewRepresentable {
         var parent: MapView
         var pendingZoomWorkItem: DispatchWorkItem?
         
-        let zoomedSpan = MKCoordinateSpan(latitudeDelta: 0.14, longitudeDelta: 0.14)
+        let zoomedSpan = MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)
         let selectionPointThreshold: CGFloat = 20
         let coordinateThreshold = 0.0001
         

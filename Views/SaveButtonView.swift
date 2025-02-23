@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-// Save Button Component
 struct SaveButtonView: View {
     @Binding var isPresented: Bool
     @Binding var pin: Pin
