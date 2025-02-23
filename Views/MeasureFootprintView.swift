@@ -84,7 +84,6 @@ struct MeasureFootprintView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .onChange(of: entry.distance) { newValue in
-                                    // Allow only digits and a single period
                                     var filtered = newValue.filter { "0123456789.".contains($0) }
                                     let dotCount = filtered.filter { $0 == "." }.count
                                     if dotCount > 1 {
@@ -138,7 +137,6 @@ struct MeasureFootprintView: View {
                     calculateTravelEfficiency()
                     showChart = true
                     
-                    // Post a notification on first calculation
                     if !UserDefaults.standard.bool(forKey: "hasShownAnalysisNotification") {
                         NotificationCenter.default.post(name: NSNotification.Name("ShowAnalysisNotification"), object: nil)
                         UserDefaults.standard.set(true, forKey: "hasShownAnalysisNotification")

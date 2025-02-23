@@ -115,7 +115,6 @@ struct SidebarModalView: View {
                     .padding(.top, 5)
             } else {
                 HStack {
-                    // Left side: Pie Chart
                     ZStack {
                         ForEach(Array(sortedData.enumerated()), id: \.offset) { index, element in
                             PieSliceView(
@@ -127,7 +126,6 @@ struct SidebarModalView: View {
                     }
                     .frame(width: 250, height: 250)
                     
-                    // Right side: Total emissions and legend
                     VStack(alignment: .leading, spacing: 5) {
                         Text("Total Transport Emissions: **\(Int(transportData.values.reduce(0, +))) kg CO₂**")
                             .font(.subheadline)
@@ -153,7 +151,6 @@ struct SidebarModalView: View {
         .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
     }
 
-    // Update the angle function to work with the sorted array.
     private func angle(for index: Int, in data: [(key: String, value: Double)]) -> Angle {
         let total = data.reduce(0) { $0 + $1.value }
         guard total != 0 else { return .degrees(0) }
@@ -218,17 +215,17 @@ struct SidebarModalView: View {
         .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
     }
 
-    private func createCarbonTrendsView() -> some View {
-        VStack(alignment: .leading) {
-            Text("📉 Your CO₂ Savings Over Time")
-                .font(.headline)
-            ChartView(savingsData: getSavingsOverTime())
-                .frame(height: 150)
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
-    }
+//    private func createCarbonTrendsView() -> some View {
+//        VStack(alignment: .leading) {
+//            Text("📉 Your CO₂ Savings Over Time")
+//                .font(.headline)
+//            ChartView(savingsData: getSavingsOverTime())
+//                .frame(height: 150)
+//        }
+//        .padding()
+//        .frame(maxWidth: .infinity, alignment: .leading)
+//        .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+//    }
 
     private func createEcoBadgesView() -> some View {
         VStack(alignment: .leading) {

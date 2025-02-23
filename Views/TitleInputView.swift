@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-// Title Input Component
 struct TitleInputView: View {
     @Binding var pin: Pin
     @State private var titleError: String? = nil

@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-// Delete Button Component
 struct DeleteButtonView: View {
     @Binding var isPresented: Bool
     var deletePin: () -> Void

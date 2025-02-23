@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-// Category Picker Component
 struct CategoryPickerView: View {
     @Binding var selectedCategory: PinCategory
     

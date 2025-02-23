@@ -101,20 +101,6 @@ struct ContentView: View {
             Color.black.opacity(0.9).ignoresSafeArea()
 
             HStack {
-                if isSidebarOpen {
-                    SidebarView(viewModel: viewModel, isSidebarOpen: $isSidebarOpen)
-                        .transition(.move(edge: .leading))
-                        .animation(.easeInOut, value: isSidebarOpen)
-
-                    VStack {
-                        Rectangle()
-                            .fill(Color.gray.opacity(0.25))
-                            .frame(width: 2)
-                            .frame(maxHeight: .infinity)
-                    }
-                    .padding(.horizontal, 4)
-                }
-
                 VStack(spacing: 0) {
                     HStack(spacing: 0) {
                         VStack(alignment: .leading, spacing: 2) {
@@ -239,10 +225,11 @@ struct ContentView: View {
         }
         .onAppear {
             // Check if we've already reset the app data
-            if !UserDefaults.standard.bool(forKey: "hasResetApp") {
-                resetAppData()
-                UserDefaults.standard.set(true, forKey: "hasResetApp")
-            }
+//            if !UserDefaults.standard.bool(forKey: "hasResetApp") {
+//                resetAppData()
+//                UserDefaults.standard.set(true, forKey: "hasResetApp")
+//            }
+//            resetAppData()
             
             NotificationCenter.default.addObserver(forName: NSNotification.Name("ShowAnalysisNotification"), object: nil, queue: .main) { _ in
                 Task { @MainActor in
@@ -314,7 +301,7 @@ struct ContentView: View {
         )
         .overlay(
             Group {
-                if !isSidebarPresented && !isJournalingPresented && !isSpotlightPresented && !isHowToUsePresented && !isWelcomePopupPresented {
+                if !isSidebarPresented && !isJournalingPresented && !isSpotlightPresented && !isHowToUsePresented && !isWelcomePopupPresented && !isEditingPin {
                     VStack(spacing: 16) {
                         Button(action: { zoomIn() }) {
                             Image(systemName: "plus")
@@ -566,7 +553,7 @@ struct AnalysisNotificationView: View {
         VStack {
             HStack {
                 VStack(alignment: .leading) {
-                    Text("Check the chart icon for an analysis of your travels!")
+                    Text("💡 Check the chart icon for an analysis of your travels!")
                         .font(.headline)
                         .foregroundColor(.white)
                 }

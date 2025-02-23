@@ -21,17 +21,16 @@ struct TripDetailsView: View {
 
     var body: some View {
         ZStack {
-            VStack(alignment: .leading, spacing: 20) { // Increased spacing for better separation
+            VStack(alignment: .leading, spacing: 20) {
                 
-                // Trip Dates Section
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Trip Dates").font(.headline)
                     DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
                         .onChange(of: startDate) { _ in validateDates() }
-                        .accentColor(.black) // Calendar accent color set to black
+                        .accentColor(.black)
                     DatePicker("End Date", selection: $endDate, displayedComponents: .date)
                         .onChange(of: endDate) { _ in validateDates() }
-                        .accentColor(.black) // Calendar accent color set to black
+                        .accentColor(.black)
                     if let dateError = dateError {
                         Text(dateError)
                             .font(.footnote)
@@ -42,7 +41,6 @@ struct TripDetailsView: View {
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 5).fill(Color(UIColor.systemBackground)))
 
-                // Trip Rating Section
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Trip Rating").font(.headline)
                     Slider(
@@ -54,7 +52,7 @@ struct TripDetailsView: View {
                         step: 1
                     )
                     .padding(.horizontal)
-                    .accentColor(.gray) // Slider accent color set to gray
+                    .accentColor(.gray)
                     HStack {
                         ForEach(0...5, id: \.self) { rating in
                             Text(rating == 0 ? "No Rating" : "\(rating)")
@@ -66,7 +64,6 @@ struct TripDetailsView: View {
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 5).fill(Color(UIColor.systemBackground)))
 
-                // Trip Budget Section
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Trip Cost").font(.headline)
                     HStack {
@@ -74,7 +71,7 @@ struct TripDetailsView: View {
                             .foregroundColor(.green)
                         
                         TextField("Enter cost ($)", text: $budgetText)
-                            .accentColor(.gray) // TextField accent color set to gray
+                            .accentColor(.gray)
                             .keyboardType(.decimalPad)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .onChange(of: budgetText) { newValue in
@@ -88,7 +85,6 @@ struct TripDetailsView: View {
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 5).fill(Color(UIColor.systemBackground)))
                 
-                // Photo Upload Section
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Add Photos")
                         .font(.headline)
@@ -149,19 +145,16 @@ struct TripDetailsView: View {
             .padding()
         }
         .onAppear {
-            // Initialize dates and budget
             startDate = pin.startDate ?? Date()
             endDate = pin.endDate ?? Date()
             if let budget = pin.tripBudget {
                 budgetText = String(format: "%.2f", budget)
             }
-            // Load saved images for this pin
             Task {
                 await loadSavedImages()
             }
         }
         .onDisappear {
-            // Save selected dates back to the pin
             pin.startDate = startDate
             pin.endDate = endDate
         }
@@ -176,7 +169,7 @@ struct TripDetailsView: View {
         let filtered = input.filter { "0123456789.".contains($0) }
         let decimalCount = filtered.filter { $0 == "." }.count
         if decimalCount > 1 {
-            return String(filtered.dropLast()) // Prevent multiple decimal points
+            return String(filtered.dropLast())
         }
         return filtered
     }

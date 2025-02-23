@@ -58,7 +58,6 @@ struct PinEditView: View {
                     DeleteButtonView(isPresented: $isPresented, deletePin: deletePin, viewModel: viewModel)
                 }
             }
-            // Hide the default form background and set a dark appearance.
             .scrollContentBackground(.hidden)
             .background(Color.black)
             .foregroundColor(.white)
@@ -81,7 +80,7 @@ struct PinEditView: View {
             }
         }
         .interactiveDismissDisabled(pin.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        .preferredColorScheme(.dark)  // Force dark mode throughout this view.
+        .preferredColorScheme(.dark)
         .task {
             await loadSavedImages()
         }

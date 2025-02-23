@@ -16,7 +16,6 @@ struct SaveButtonView: View {
     
     var body: some View {
         Button("Save Pin") {
-            // Validate that a title is entered (not just spaces)
             if pin.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 showValidationAlert = true
             } else {
