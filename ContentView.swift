@@ -239,10 +239,10 @@ struct ContentView: View {
         }
         .onAppear {
             // Check if we've already reset the app data
-//            if !UserDefaults.standard.bool(forKey: "hasResetApp") {
-//                resetAppData()
-//                UserDefaults.standard.set(true, forKey: "hasResetApp")
-//            }
+            if !UserDefaults.standard.bool(forKey: "hasResetApp") {
+                resetAppData()
+                UserDefaults.standard.set(true, forKey: "hasResetApp")
+            }
             
             NotificationCenter.default.addObserver(forName: NSNotification.Name("ShowAnalysisNotification"), object: nil, queue: .main) { _ in
                 Task { @MainActor in

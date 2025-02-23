@@ -29,9 +29,7 @@ struct SpotlightSearchView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea()
 
-            // Spotlight Search UI (Pill + Expanding Results)
             VStack(spacing: 0) {
-                // Search Bar
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.gray)
@@ -70,7 +68,6 @@ struct SpotlightSearchView: View {
                         .padding(.horizontal, 10)
                 }
 
-                // Search Results
                 if !filteredPins.isEmpty {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(filteredPins) { pin in
@@ -88,7 +85,6 @@ struct SpotlightSearchView: View {
                                     .foregroundColor(.gray)
                             }
                             .padding()
-//                            .background(Color.black.opacity(0.65))
                             .cornerRadius(10)
                             .onTapGesture {
                                 withAnimation {
@@ -105,7 +101,6 @@ struct SpotlightSearchView: View {
                                     
                                     isPresented = false
                                     
-                                    // Post notification to trigger navigation in ContentView
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                         NotificationCenter.default.post(name: NSNotification.Name("NavigateToPinEditView"), object: pin)
                                     }

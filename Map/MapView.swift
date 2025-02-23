@@ -8,6 +8,9 @@
 import SwiftUI
 import MapKit
 
+import SwiftUI
+import MapKit
+
 struct MapView: UIViewRepresentable {
     @Binding var region: MKCoordinateRegion
     @Binding var pins: [Pin]
@@ -42,7 +45,6 @@ struct MapView: UIViewRepresentable {
                 self.parent.disableAutoCenter = false
                 
                 DispatchQueue.main.async {
-                    // Center on the pin using its coordinate
                     self.parent.region = MKCoordinateRegion(
                         center: existingPin.coordinate,
                         span: self.zoomedSpan
@@ -58,13 +60,11 @@ struct MapView: UIViewRepresentable {
                 return
             }
             
-            // For a new pin
             DispatchQueue.main.async {
                 let newPin = Pin(title: "", coordinate: coordinate, category: .visited)
                 self.parent.pins.append(newPin)
                 self.parent.selectedPin = newPin
                 self.parent.isEditingPin = true
-                // Reset disableAutoCenter for new pin creation
                 self.parent.disableAutoCenter = false
                 self.parent.region = MKCoordinateRegion(center: coordinate, span: self.zoomedSpan)
             }
@@ -79,17 +79,14 @@ struct MapView: UIViewRepresentable {
                 abs($0.coordinate.latitude - annotation.coordinate.latitude) < coordinateThreshold &&
                 abs($0.coordinate.longitude - annotation.coordinate.longitude) < coordinateThreshold
             }) {
-                // Reset disableAutoCenter when selecting a pin
                 self.parent.disableAutoCenter = false
                 
                 DispatchQueue.main.async {
-                    // Center on the pin using its coordinate
                     self.parent.region = MKCoordinateRegion(
                         center: pin.coordinate,
                         span: self.zoomedSpan
                     )
                     
-                    // Set up selection after a brief delay
                     let workItem = DispatchWorkItem {
                         self.parent.selectedPin = pin
                         self.parent.isEditingPin = true
@@ -99,7 +96,6 @@ struct MapView: UIViewRepresentable {
                 }
             }
             
-            // Deselect the annotation to prevent the default callout
             mapView.deselectAnnotation(annotation, animated: false)
         }
         
@@ -147,23 +143,35 @@ struct MapView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: MKMapView, context: Context) {
-        uiView.removeAnnotations(uiView.annotations)
-        let annotations = pins.map { pin -> MKPointAnnotation in
-            let annotation = MKPointAnnotation()
-            annotation.coordinate = pin.coordinate
-            annotation.title = pin.title
-            return annotation
+        if uiView.annotations.count != pins.count {
+            uiView.removeAnnotations(uiView.annotations)
+            let annotations = pins.map { pin -> MKPointAnnotation in
+                let annotation = MKPointAnnotation()
+                annotation.coordinate = pin.coordinate
+                annotation.title = pin.title
+                return annotation
+            }
+            uiView.addAnnotations(annotations)
+        } else {
+            for annotation in uiView.annotations {
+                if let pointAnnotation = annotation as? MKPointAnnotation,
+                   let annotationView = uiView.view(for: pointAnnotation) as? MKMarkerAnnotationView,
+                   let matchingPin = pins.first(where: {
+                        abs($0.coordinate.latitude - pointAnnotation.coordinate.latitude) < context.coordinator.coordinateThreshold &&
+                        abs($0.coordinate.longitude - pointAnnotation.coordinate.longitude) < context.coordinator.coordinateThreshold
+                   }) {
+                    annotationView.markerTintColor = matchingPin.category == .visited ? .red : .blue
+                    pointAnnotation.title = matchingPin.title
+                }
+            }
         }
-        uiView.addAnnotations(annotations)
         
-        // Deselect annotations if auto-center is disabled
         if disableAutoCenter {
             uiView.selectedAnnotations.forEach { annotation in
                 uiView.deselectAnnotation(annotation, animated: false)
             }
         }
         
-        // Use the current map center when auto-center is disabled (i.e. during zoom in/out)
         let targetCenter: CLLocationCoordinate2D = disableAutoCenter ? uiView.region.center : region.center
         let newRegion = MKCoordinateRegion(center: targetCenter, span: region.span)
         
