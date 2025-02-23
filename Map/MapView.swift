@@ -13,6 +13,7 @@ struct MapView: UIViewRepresentable {
     @Binding var pins: [Pin]
     @Binding var selectedPin: Pin?
     @Binding var isEditingPin: Bool
+    @Binding var disableAutoCenter: Bool
 
     class Coordinator: NSObject, MKMapViewDelegate, UIGestureRecognizerDelegate {
         var parent: MapView
@@ -38,30 +39,33 @@ struct MapView: UIViewRepresentable {
                 let distance = hypot(pinPoint.x - touchPoint.x, pinPoint.y - touchPoint.y)
                 return distance < selectionPointThreshold
             }) {
-                if abs(self.parent.region.center.latitude - existingPin.coordinate.latitude) > coordinateThreshold ||
-                    abs(self.parent.region.center.longitude - existingPin.coordinate.longitude) > coordinateThreshold {
-                    DispatchQueue.main.async {
-                        self.parent.region = MKCoordinateRegion(
-                            center: existingPin.coordinate,
-                            span: self.zoomedSpan
-                        )
+                self.parent.disableAutoCenter = false
+                
+                DispatchQueue.main.async {
+                    // Center on the pin using its coordinate
+                    self.parent.region = MKCoordinateRegion(
+                        center: existingPin.coordinate,
+                        span: self.zoomedSpan
+                    )
+                    
+                    let workItem = DispatchWorkItem {
+                        self.parent.selectedPin = existingPin
+                        self.parent.isEditingPin = true
                     }
+                    self.pendingZoomWorkItem = workItem
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: workItem)
                 }
-                let workItem = DispatchWorkItem {
-                    self.parent.selectedPin = existingPin
-                    self.parent.isEditingPin = true
-                }
-                pendingZoomWorkItem = workItem
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: workItem)
                 return
             }
             
-            // For new pin: create it, update the region to center on it, and open edit view.
+            // For a new pin
             DispatchQueue.main.async {
                 let newPin = Pin(title: "", coordinate: coordinate, category: .visited)
                 self.parent.pins.append(newPin)
                 self.parent.selectedPin = newPin
                 self.parent.isEditingPin = true
+                // Reset disableAutoCenter for new pin creation
+                self.parent.disableAutoCenter = false
                 self.parent.region = MKCoordinateRegion(center: coordinate, span: self.zoomedSpan)
             }
         }
@@ -75,22 +79,28 @@ struct MapView: UIViewRepresentable {
                 abs($0.coordinate.latitude - annotation.coordinate.latitude) < coordinateThreshold &&
                 abs($0.coordinate.longitude - annotation.coordinate.longitude) < coordinateThreshold
             }) {
-                if abs(self.parent.region.center.latitude - pin.coordinate.latitude) > coordinateThreshold ||
-                    abs(self.parent.region.center.longitude - pin.coordinate.longitude) > coordinateThreshold {
-                    DispatchQueue.main.async {
-                        self.parent.region = MKCoordinateRegion(
-                            center: pin.coordinate,
-                            span: self.zoomedSpan
-                        )
+                // Reset disableAutoCenter when selecting a pin
+                self.parent.disableAutoCenter = false
+                
+                DispatchQueue.main.async {
+                    // Center on the pin using its coordinate
+                    self.parent.region = MKCoordinateRegion(
+                        center: pin.coordinate,
+                        span: self.zoomedSpan
+                    )
+                    
+                    // Set up selection after a brief delay
+                    let workItem = DispatchWorkItem {
+                        self.parent.selectedPin = pin
+                        self.parent.isEditingPin = true
                     }
+                    self.pendingZoomWorkItem = workItem
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: workItem)
                 }
-                let workItem = DispatchWorkItem {
-                    self.parent.selectedPin = pin
-                    self.parent.isEditingPin = true
-                }
-                pendingZoomWorkItem = workItem
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: workItem)
             }
+            
+            // Deselect the annotation to prevent the default callout
+            mapView.deselectAnnotation(annotation, animated: false)
         }
         
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
@@ -146,12 +156,22 @@ struct MapView: UIViewRepresentable {
         }
         uiView.addAnnotations(annotations)
         
-        // Update the visible region if either the center or span has changed.
-        if uiView.region.center.latitude != region.center.latitude ||
-            uiView.region.center.longitude != region.center.longitude ||
-            uiView.region.span.latitudeDelta != region.span.latitudeDelta ||
-            uiView.region.span.longitudeDelta != region.span.longitudeDelta {
-            uiView.setRegion(region, animated: true)
+        // Deselect annotations if auto-center is disabled
+        if disableAutoCenter {
+            uiView.selectedAnnotations.forEach { annotation in
+                uiView.deselectAnnotation(annotation, animated: false)
+            }
+        }
+        
+        // Use the current map center when auto-center is disabled (i.e. during zoom in/out)
+        let targetCenter: CLLocationCoordinate2D = disableAutoCenter ? uiView.region.center : region.center
+        let newRegion = MKCoordinateRegion(center: targetCenter, span: region.span)
+        
+        if abs(uiView.region.center.latitude - newRegion.center.latitude) > context.coordinator.coordinateThreshold ||
+           abs(uiView.region.center.longitude - newRegion.center.longitude) > context.coordinator.coordinateThreshold ||
+           abs(uiView.region.span.latitudeDelta - newRegion.span.latitudeDelta) > context.coordinator.coordinateThreshold ||
+           abs(uiView.region.span.longitudeDelta - newRegion.span.longitudeDelta) > context.coordinator.coordinateThreshold {
+            uiView.setRegion(newRegion, animated: true)
         }
     }
 }

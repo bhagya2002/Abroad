@@ -17,7 +17,7 @@ struct FutureTripView: View {
             
             Section {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("📅 Trip Dates").font(.headline)
+                    Text("Trip Dates").font(.headline)
                     DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
                         .accentColor(.black)
                 }
@@ -28,7 +28,7 @@ struct FutureTripView: View {
 
             Section {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("🌍 Sustainable Travel Tips for \(pin.ecoRegion ?? "this region")")
+                    Text("Sustainable Travel Tips for \(pin.ecoRegion ?? "this region")")
                         .font(.headline)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
@@ -40,9 +40,9 @@ struct FutureTripView: View {
                             Text("• \(tip)")
                                 .foregroundColor(.gray)
                                 .padding(.bottom, 2)
+                                .padding(.leading, 10)
                         }
                         
-                        // Extra spacing between eco-friendly tips and the packing list section.
                         Spacer().frame(height: 12)
                         
                         Text("🎒 **Packing List:**")
@@ -51,10 +51,11 @@ struct FutureTripView: View {
                         ForEach(pin.packingList, id: \.self) { item in
                             Text("• \(item)")
                                 .foregroundColor(.gray)
+                                .padding(.leading, 10)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 10) // adds some extra space below the header
+                    .padding(.top, 10)
                 }
                 .padding()
                 .frame(maxWidth: .infinity)

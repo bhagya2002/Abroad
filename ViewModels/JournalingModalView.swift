@@ -65,6 +65,7 @@ struct JournalModalView: View {
                                     .font(.headline)
                                     .foregroundColor(.white)
                                     .padding(.trailing, 16)
+                                    .accentColor(.black)
 
                                 DatePicker("", selection: $entryDate, displayedComponents: .date)
                                     .labelsHidden()
@@ -151,9 +152,7 @@ struct JournalModalView: View {
                 }
                 
                 Button(action: {
-                    journalTitle = ""
-                    journalEntry = ""
-                    entryDate = Date()
+                    clearFields()
                 }) {
                     Label("New Entry", systemImage: "plus.circle")
                         .font(.headline)
@@ -167,14 +166,14 @@ struct JournalModalView: View {
                 .padding(.horizontal)
                 .padding(.bottom, 10)
 
-
                 Button(action: {
                     if journalTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || journalEntry.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         errorMessage = "Please enter a title and description."
-                        return // Prevent saving if fields are empty
+                        return
                     }
                     errorMessage = ""
                     saveJournalEntry()
+                    clearFields()
                 }) {
                     Text("Save Entry")
                         .bold()
@@ -192,41 +191,38 @@ struct JournalModalView: View {
             .background(Color.black.opacity(0.75))
             .cornerRadius(20)
             .shadow(radius: 10)
-//            .transition(.opacity)
             .onAppear { loadJournalEntries() }
         }
     }
     
     private func deleteEntry(_ entry: JournalEntry) {
-        // Remove entry from the list
         savedEntries.removeAll { $0.id == entry.id }
-
-        // Save updated entries back to UserDefaults
         if let encoded = try? JSONEncoder().encode(savedEntries) {
             UserDefaults.standard.set(encoded, forKey: "journalEntries")
         }
     }
 
     private func saveJournalEntry() {
-        let newEntry = JournalEntry(id: UUID(), title: journalTitle, entry: journalEntry, date: entryDate)
-
-        // Load existing entries first
-        var existingEntries: [JournalEntry] = []
-        if let data = UserDefaults.standard.data(forKey: "journalEntries"),
-           let decoded = try? JSONDecoder().decode([JournalEntry].self, from: data) {
-            existingEntries = decoded
+        if let editingEntry = selectedEntry,
+           let index = savedEntries.firstIndex(where: { $0.id == editingEntry.id }) {
+            savedEntries[index].title = journalTitle
+            savedEntries[index].entry = journalEntry
+            savedEntries[index].date = entryDate
+        } else {
+            let newEntry = JournalEntry(id: UUID(), title: journalTitle, entry: journalEntry, date: entryDate)
+            savedEntries.append(newEntry)
         }
-
-        // Append new entry
-        existingEntries.append(newEntry)
-
-        // Save back to UserDefaults
-        if let encoded = try? JSONEncoder().encode(existingEntries) {
+        
+        if let encoded = try? JSONEncoder().encode(savedEntries) {
             UserDefaults.standard.set(encoded, forKey: "journalEntries")
         }
+    }
 
-        // Update local list to reflect saved data
-        savedEntries = existingEntries
+    private func clearFields() {
+        journalTitle = ""
+        journalEntry = ""
+        entryDate = Date()
+        selectedEntry = nil
     }
 
     private func loadJournalEntries() {
@@ -236,16 +232,11 @@ struct JournalModalView: View {
         }
     }
 
-    private func saveJournalEntries() {
-        if let encoded = try? JSONEncoder().encode(savedEntries) {
-            UserDefaults.standard.set(encoded, forKey: "journalEntries")
-        }
-    }
-
     private func loadEntry(_ entry: JournalEntry) {
         journalTitle = entry.title
         journalEntry = entry.entry
         entryDate = entry.date
+        selectedEntry = entry
     }
 
     private func closeJournal() {

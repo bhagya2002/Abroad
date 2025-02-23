@@ -80,6 +80,7 @@ struct ContentView: View {
         center: CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795),
         span: MKCoordinateSpan(latitudeDelta: 30.0, longitudeDelta: 60.0)
     )
+    @State private var disableAutoCenter = false
 
     @StateObject private var viewModel = PinsViewModel()
     @State private var selectedPin: Pin? = nil
@@ -92,7 +93,6 @@ struct ContentView: View {
     @State private var showAnalysisNotification: Bool = false
     @State private var isHowToUsePresented: Bool = false
     
-    // Welcome popup state and first-launch flag
     @State private var isWelcomePopupPresented: Bool = false
     @AppStorage("hasSeenWelcomePopup") var hasSeenWelcomePopup: Bool = false
 
@@ -122,7 +122,7 @@ struct ContentView: View {
                                 .font(.largeTitle)
                                 .bold()
                                 .foregroundColor(.white)
-                            Text("Pin your travels, reduce your carbon footprint")
+                            Text("Pin your travels, reduce your carbon footprint!")
                                 .font(.title2)
                                 .foregroundColor(.gray)
                         }
@@ -155,18 +155,20 @@ struct ContentView: View {
                         .padding(.trailing, 15)
                     }
                     .frame(height: UIScreen.main.bounds.height * 0.1)
-                    .foregroundColor(.white).opacity(0.88)
+                    .foregroundColor(.white)
+                    .opacity(0.88)
                     
                     CarbonFootprintProgressBar(viewModel: viewModel)
-                        .padding(.vertical, 10)
+                        .padding(.vertical, 8)
+                        .padding(.top, -16)
 
-                    // Map Section
                     ZStack {
                         MapView(
                             region: $region,
                             pins: $viewModel.pins,
                             selectedPin: $selectedPin,
-                            isEditingPin: $isEditingPin
+                            isEditingPin: $isEditingPin,
+                            disableAutoCenter: $disableAutoCenter
                         )
                         .edgesIgnoringSafeArea(.all)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -226,7 +228,6 @@ struct ContentView: View {
                 }
             }
             
-            // Welcome Popup Overlay
             if isWelcomePopupPresented {
                 ZStack {
                     Color.black.opacity(0.955).edgesIgnoringSafeArea(.all)
@@ -237,6 +238,12 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            // Check if we've already reset the app data
+//            if !UserDefaults.standard.bool(forKey: "hasResetApp") {
+//                resetAppData()
+//                UserDefaults.standard.set(true, forKey: "hasResetApp")
+//            }
+            
             NotificationCenter.default.addObserver(forName: NSNotification.Name("ShowAnalysisNotification"), object: nil, queue: .main) { _ in
                 Task { @MainActor in
                     withAnimation { showAnalysisNotification = true }
@@ -342,6 +349,13 @@ struct ContentView: View {
         )
     }
     
+    func resetAppData() {
+        if let bundleID = Bundle.main.bundleIdentifier {
+            UserDefaults.standard.removePersistentDomain(forName: bundleID)
+            UserDefaults.standard.synchronize()
+        }
+    }
+    
     private func selectedPinIndex() -> Int? {
         guard let selectedPin = selectedPin else { return nil }
         return viewModel.pins.firstIndex { $0.id == selectedPin.id }
@@ -365,26 +379,43 @@ struct ContentView: View {
     
     // MARK: - Zoom Controls
     private func zoomIn() {
+        disableAutoCenter = true
+        selectedPin = nil
+        isEditingPin = false
+        
         let minDelta: CLLocationDegrees = 0.005
-        region.span = MKCoordinateSpan(
-            latitudeDelta: max(region.span.latitudeDelta / 2.0, minDelta),
-            longitudeDelta: max(region.span.longitudeDelta / 2.0, minDelta)
-        )
+        let newLatDelta = max(region.span.latitudeDelta / 2.0, minDelta)
+        let newLongDelta = max(region.span.longitudeDelta / 2.0, minDelta)
+        
+        withAnimation {
+            region.span = MKCoordinateSpan(
+                latitudeDelta: newLatDelta,
+                longitudeDelta: newLongDelta
+            )
+        }
     }
 
     private func zoomOut() {
+        disableAutoCenter = true
+        selectedPin = nil
+        isEditingPin = false
+        
         let maxLatDelta: CLLocationDegrees = 180.0
         let maxLongDelta: CLLocationDegrees = 360.0
-        region.span = MKCoordinateSpan(
-            latitudeDelta: min(region.span.latitudeDelta * 3.0, maxLatDelta),
-            longitudeDelta: min(region.span.longitudeDelta * 3.0, maxLongDelta)
-        )
+        let newLatDelta = min(region.span.latitudeDelta * 3.0, maxLatDelta)
+        let newLongDelta = min(region.span.longitudeDelta * 3.0, maxLongDelta)
+        
+        withAnimation {
+            region.span = MKCoordinateSpan(
+                latitudeDelta: newLatDelta,
+                longitudeDelta: newLongDelta
+            )
+        }
     }
 }
 
 // MARK: - Welcome Popup View
 
-// Renamed extension for custom placeholder styling in SwiftUI
 extension View {
     func customPlaceholder<Content: View>(
         when shouldShow: Bool,
@@ -402,10 +433,10 @@ struct WelcomePopupView: View {
     @Binding var isPresented: Bool
     @AppStorage("userCarbonGoal") var userCarbonGoal: Double = 5000.0
     @State private var tempCarbonGoal: String = ""
+    @State private var showError: Bool = false
 
     var body: some View {
         VStack(spacing: 20) {
-            // Header
             Text("Welcome to Abroad")
                 .font(.title)
                 .bold()
@@ -415,7 +446,6 @@ struct WelcomePopupView: View {
             Divider()
                 .background(Color.white)
             
-            // Importance of Sustainable Travel
             Text("""
 Traveling is about adventure, culture, and new experiences—but it also impacts our planet.
 """)
@@ -432,7 +462,6 @@ The transportation sector accounts for **25% of global CO₂ emissions**, with a
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
-            // Real-World Travel Impact Examples
             Text("""
 ✈️ **California to Europe:** ~1,500 kg CO₂ (round trip)  
 🚗 **Cross-country road trip:** ~4,500 kg CO₂ (gas car)  
@@ -444,7 +473,6 @@ The transportation sector accounts for **25% of global CO₂ emissions**, with a
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
-            // Highlighted Impact Statement
             Text("Every choice matters. Let’s make travel more mindful.")
                 .font(.body)
                 .foregroundColor(.white)
@@ -454,7 +482,6 @@ The transportation sector accounts for **25% of global CO₂ emissions**, with a
                 .padding(8)
                 .cornerRadius(8)
             
-            // Horizontally Stacked Goal-Setting Prompt & Input Field
             HStack(spacing: 6) {
                 Text("Set a goal for your max carbon allowance (kg):")
                     .foregroundColor(.white)
@@ -480,12 +507,13 @@ The transportation sector accounts for **25% of global CO₂ emissions**, with a
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
-            // Call-to-Action Button
             Button(action: {
-                if let newGoal = Double(tempCarbonGoal) {
+                if let newGoal = Double(tempCarbonGoal), !tempCarbonGoal.isEmpty {
                     userCarbonGoal = newGoal
+                    isPresented = false
+                } else {
+                    showError = true
                 }
-                isPresented = false
             }) {
                 Text("Start Your Journey")
                     .font(.headline)
@@ -501,6 +529,11 @@ The transportation sector accounts for **25% of global CO₂ emissions**, with a
         .cornerRadius(16)
         .padding(.horizontal, 30)
         .shadow(radius: 10)
+        .alert("Invalid Input", isPresented: $showError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Please enter a valid carbon goal in kg.")
+        }
     }
 }
 

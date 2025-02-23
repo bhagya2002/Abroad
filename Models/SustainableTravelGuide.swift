@@ -210,6 +210,118 @@ struct SustainableTravelGuide {
                 "Durable hiking sandals",
                 "Eco-friendly dry shampoo bar"
             ]
+        ),
+        SustainableTravelGuide(
+            region: "Russia & Eastern Europe",
+            coordinateRange: (40...70, 30...180),
+            ecoTips: [
+                "Travel by train where possible to enjoy scenic routes and reduce emissions.",
+                "Stay in eco-friendly guesthouses or heritage hotels that support local communities.",
+                "Explore local cuisine and markets to reduce reliance on imported foods.",
+                "Use public transport instead of taxis in urban areas.",
+                "Bring a reusable coffee cup to reduce disposable waste.",
+                "Participate in local sustainability initiatives or cultural events.",
+                "Carry a reusable water bottle and avoid buying bottled water.",
+                "Support local artisans and eco-friendly souvenirs.",
+                "Plan trips during off-peak seasons to reduce environmental stress.",
+                "Practice Leave No Trace principles when exploring nature."
+            ],
+            packingList: [
+                "Warm, layered clothing suitable for variable weather.",
+                "Reusable water bottle with built-in filter.",
+                "Compact travel umbrella.",
+                "Eco-friendly toiletries in travel-sized containers.",
+                "Reusable shopping bag for local markets.",
+                "Portable charger with solar panel attachment.",
+                "Comfortable walking shoes.",
+                "Insulated travel mug.",
+                "Reusable cutlery set.",
+                "Local maps and travel guidebooks."
+            ]
+        ),
+        SustainableTravelGuide(
+            region: "Middle East",
+            coordinateRange: (20...40, 30...60),
+            ecoTips: [
+                "Choose eco-certified accommodations to support sustainable tourism.",
+                "Travel during cooler months to reduce energy use for air conditioning.",
+                "Use public transport or shared rides in cities.",
+                "Support local markets and artisanal crafts.",
+                "Minimize water use during travel in arid regions.",
+                "Opt for locally sourced food to reduce transportation emissions.",
+                "Carry a reusable water bottle and cooling towel.",
+                "Respect local traditions and eco-friendly practices.",
+                "Plan your itinerary to avoid long-distance flights when possible.",
+                "Engage in cultural tours that promote sustainability."
+            ],
+            packingList: [
+                "Lightweight, breathable clothing.",
+                "Sun hat and sunglasses.",
+                "High-SPF, reef-safe sunscreen.",
+                "Reusable water bottle with cooling sleeve.",
+                "Portable fan or cooling towel.",
+                "Comfortable sandals.",
+                "Travel adapter with multiple plug options.",
+                "Eco-friendly toiletries.",
+                "Reusable shopping bag.",
+                "Travel journal for documenting eco-friendly experiences."
+            ]
+        ),
+        SustainableTravelGuide(
+            region: "East Asia",
+            coordinateRange: (20...50, 100...150),
+            ecoTips: [
+                "Use high-speed trains to reduce reliance on air travel.",
+                "Stay at eco-friendly hostels or sustainable hotels.",
+                "Embrace local street food to reduce packaging waste.",
+                "Carry a reusable bag for daily shopping.",
+                "Use public bike-sharing systems where available.",
+                "Support local initiatives focused on conservation.",
+                "Opt for digital tickets and maps to save paper.",
+                "Respect nature reserves and historic sites by minimizing waste.",
+                "Participate in local eco-tours or cultural workshops.",
+                "Avoid single-use plastics by carrying reusable utensils."
+            ],
+            packingList: [
+                "Compact, foldable umbrella.",
+                "Lightweight, moisture-wicking clothing.",
+                "Reusable water bottle with filter.",
+                "Travel adapter for multiple countries.",
+                "Portable power bank.",
+                "Eco-friendly travel toiletries.",
+                "Reusable snack pouch.",
+                "Comfortable walking shoes.",
+                "Small backpack or daypack.",
+                "Local language phrasebook or translation app."
+            ]
+        ),
+        SustainableTravelGuide(
+            region: "Central Asia",
+            coordinateRange: (35...50, 45...80),
+            ecoTips: [
+                "Travel by shared vans or trains to reduce emissions.",
+                "Stay in eco-friendly guesthouses to support local communities.",
+                "Explore local cultural sites with minimal environmental impact.",
+                "Use reusable water bottles and cutlery to avoid waste.",
+                "Plan itineraries that reduce backtracking and fuel use.",
+                "Engage with local guides to learn about sustainable practices.",
+                "Bring eco-friendly sunscreen and bug repellent.",
+                "Support markets that promote local, organic produce.",
+                "Pack light to reduce transportation fuel usage.",
+                "Respect local traditions and natural landscapes."
+            ],
+            packingList: [
+                "Versatile clothing for changing weather.",
+                "Sturdy walking shoes.",
+                "Reusable water bottle with filter.",
+                "Eco-friendly toiletries in travel sizes.",
+                "Compact travel blanket.",
+                "Portable charger.",
+                "Reusable shopping bag.",
+                "Sun hat and sunglasses.",
+                "Local maps and guidebook.",
+                "Travel journal."
+            ]
         )
     ]
 
