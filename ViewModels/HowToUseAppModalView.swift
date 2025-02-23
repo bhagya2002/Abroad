@@ -129,7 +129,7 @@ struct HowToUseAppModalView: View {
                     .foregroundColor(.white)
                     .padding(.vertical)
                     .padding(.leading, 10)
-                    .padding(.trailing, 10)
+                    .padding(.trailing, 20) // Increased right padding
                 }
             }
             .frame(maxWidth: UIScreen.main.bounds.width * 0.85,

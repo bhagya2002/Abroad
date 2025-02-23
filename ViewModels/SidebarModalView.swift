@@ -11,6 +11,7 @@ import Charts
 struct SidebarModalView: View {
     @Binding var isPresented: Bool
     @ObservedObject var viewModel: PinsViewModel
+    @AppStorage("userCarbonGoal") var userCarbonGoal: Double = 5000.0
 
     var body: some View {
         ZStack {
@@ -358,7 +359,7 @@ struct SidebarModalView: View {
     }
 
     private func getUserCarbonGoal() -> Double {
-        return 2000 // Placeholder: Allow user to configure this
+        return userCarbonGoal
     }
 
     private func getBestTransport() -> String {
