@@ -260,7 +260,7 @@ struct ContentView: View {
                     ZStack {
                         Color.black.opacity(0.3)
                             .edgesIgnoringSafeArea(.all)
-                            .onTapGesture { handlePinDismiss(index: index) }
+//                            .onTapGesture { handlePinDismiss(index: index) }
                         PinEditView(
                             pin: $viewModel.pins[index],
                             isPresented: $isEditingPin,
@@ -479,7 +479,7 @@ The transportation sector accounts for **25% of global CO₂ emissions**, with a
                     .keyboardType(.numberPad)
                     .padding(10)
                     .frame(width: 140)
-                    .accentColor(.black)
+                    .accentColor(.white)
                     .background(Color(white: 0.15))
                     .cornerRadius(8)
                     .overlay(
@@ -512,7 +512,7 @@ The transportation sector accounts for **25% of global CO₂ emissions**, with a
             }
         }
         .padding()
-        .background(Color.black.opacity(1))
+        .background(Color.black.opacity(0.95))
         .cornerRadius(16)
         .padding(.horizontal, 30)
         .shadow(radius: 10)

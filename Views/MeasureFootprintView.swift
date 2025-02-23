@@ -75,12 +75,13 @@ struct MeasureFootprintView: View {
                             .pickerStyle(MenuPickerStyle())
                             .frame(width: 180)
                             .accentColor(.white)
+                            .cornerRadius(20)
 
                             TextField("Distance (km)", text: $entry.distance)
                                 .keyboardType(.decimalPad)
                                 .padding()
                                 .accentColor(.black)
-                                .background(Color(.systemGray6))
+                                .background(Color(.black))
                                 .clipShape(RoundedRectangle(cornerRadius: 10))
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .onChange(of: entry.distance) { newValue in
@@ -110,9 +111,12 @@ struct MeasureFootprintView: View {
                             Button(action: { removeEntry(entry) }) {
                                 Image(systemName: "minus.circle.fill")
                                     .foregroundColor(.red)
+                                    .padding(.trailing, 8)
                             }
                         }
+                        .background(Color.black)
                         .padding(.horizontal)
+                        .cornerRadius(20)
                     }
 
                     Button(action: {

@@ -20,7 +20,7 @@ struct HowToUseAppModalView: View {
             
             VStack(spacing: 0) {
                 HStack {
-                    Text("How to Use the App")
+                    Text("How to use Abroad")
                         .font(.title)
                         .bold()
                         .foregroundColor(.white)
@@ -47,8 +47,7 @@ struct HowToUseAppModalView: View {
                                 .font(.headline)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("• Tap anywhere on the map to add a new location.")
-                                Text("• Use zoom and scroll gestures to move around the map.")
+                                Text("• Tap anywhere on the map to add a new Pinned location or edit an existing Pin.")
                             }
                             .padding(.leading, 10)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -67,12 +66,12 @@ struct HowToUseAppModalView: View {
                         }
                         
                         Group {
-                            Text("3. Attach Photos to Your Pin")
+                            Text("3. Add Travel Details to Your Pin")
                                 .font(.headline)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("• Select images from your photo gallery.")
-                                Text("• Create a visual diary for each travel spot.")
+                                Text("• Include information on your trip to look back at later.")
+                                Text("• Select images from your photo gallery for a visual diary for each travel spot.")
                             }
                             .padding(.leading, 10)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -83,7 +82,7 @@ struct HowToUseAppModalView: View {
                                 .font(.headline)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("• Enter travel distance and choose your mode of transport.")
+                                Text("• Enter travel distance and choose your mode of transport for an analysis under the 'Measure Footprint' tab on a Pin.")
                                 Text("• The app calculates estimated CO₂ emissions based on your input.")
                             }
                             .padding(.leading, 10)
@@ -95,7 +94,7 @@ struct HowToUseAppModalView: View {
                                 .font(.headline)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("• Get an eco-friendly packing list for the region.")
+                                Text("• Get an eco-friendly packing list for the region when you pick 'Future Travel'.")
                                 Text("• Explore sustainable travel options for various regions.")
                             }
                             .padding(.leading, 10)
