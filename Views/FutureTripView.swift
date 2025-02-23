@@ -19,6 +19,7 @@ struct FutureTripView: View {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("📅 Trip Dates").font(.headline)
                     DatePicker("Start Date", selection: $startDate, displayedComponents: .date)
+                        .accentColor(.black)
                 }
                 .padding()
                 .background(RoundedRectangle(cornerRadius: 5).fill(Color(UIColor.systemBackground)))
@@ -26,18 +27,37 @@ struct FutureTripView: View {
             .padding(.bottom, 10)
 
             Section {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("🌍 Sustainable Travel Tips for \(pin.ecoRegion ?? "this region")").font(.headline)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("🌍 Sustainable Travel Tips for \(pin.ecoRegion ?? "this region")")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("♻️ **Eco-Friendly Tips:**").bold().padding(.bottom, 2)
-                        ForEach(pin.ecoTips, id: \.self) { Text("• \($0)").foregroundColor(.gray).padding(.bottom, 2) }
-
-                        Text("🎒 **Packing List:**").bold().padding(.top, 4)
-                        ForEach(pin.packingList, id: \.self) { Text("• \($0)").foregroundColor(.gray) }
+                        Text("♻️ **Eco-Friendly Tips:**")
+                            .bold()
+                            .padding(.bottom, 2)
+                        ForEach(pin.ecoTips, id: \.self) { tip in
+                            Text("• \(tip)")
+                                .foregroundColor(.gray)
+                                .padding(.bottom, 2)
+                        }
+                        
+                        // Extra spacing between eco-friendly tips and the packing list section.
+                        Spacer().frame(height: 12)
+                        
+                        Text("🎒 **Packing List:**")
+                            .bold()
+                            .padding(.bottom, 2)
+                        ForEach(pin.packingList, id: \.self) { item in
+                            Text("• \(item)")
+                                .foregroundColor(.gray)
+                        }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 10) // adds some extra space below the header
                 }
                 .padding()
+                .frame(maxWidth: .infinity)
                 .background(RoundedRectangle(cornerRadius: 5).fill(Color(UIColor.systemBackground)))
             }
         }

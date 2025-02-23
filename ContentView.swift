@@ -18,6 +18,10 @@ class PinsViewModel: ObservableObject {
         if let encoded = try? JSONEncoder().encode(pins) {
             UserDefaults.standard.set(encoded, forKey: storageKey)
         }
+        // Reset the analysis notification flag when there are no pins.
+        if pins.isEmpty {
+            UserDefaults.standard.set(false, forKey: "hasShownAnalysisNotification")
+        }
     }
 
     func loadPins() {
@@ -38,16 +42,17 @@ struct CarbonFootprintProgressBar: View {
             HStack {
                 Text("Max carbon emission goal")
                     .font(.headline)
+                    .foregroundColor(.white)
                 ProgressView(value: getTotalEmissions(), total: getUserCarbonGoal())
                     .progressViewStyle(LinearProgressViewStyle())
                     .frame(height: 10)
-                    .accentColor(.black)
+                    .accentColor(.white)
                     .frame(maxWidth: .infinity)
             }
         }
         .padding()
         .frame(maxWidth: .infinity) // makes the view span the full width
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.black))
         .padding(.horizontal)
     }
     
@@ -81,6 +86,9 @@ struct ContentView: View {
     @State private var isSidebarPresented: Bool = false
     @State private var isSpotlightPresented: Bool = false
     @State private var searchText: String = ""
+    
+    @State private var showAnalysisNotification: Bool = false
+    @State private var isHowToUsePresented: Bool = false
 
     var body: some View {
         ZStack {
@@ -176,6 +184,26 @@ struct ContentView: View {
                             .transition(.opacity)
                             .animation(.easeInOut, value: viewModel.pins.isEmpty)
                         }
+                        
+                        if !viewModel.pins.isEmpty && showAnalysisNotification {
+                            VStack {
+                                AnalysisNotificationView()
+                                    .onTapGesture {
+                                        withAnimation {
+                                            showAnalysisNotification = false
+                                        }
+                                    }
+                                Spacer()
+                            }
+                            .transition(.opacity)
+                            .animation(.easeInOut, value: showAnalysisNotification)
+                        }
+                        
+                        if isHowToUsePresented {
+                            HowToUseAppModalView(isPresented: $isHowToUsePresented)
+                                .transition(.opacity)
+                                .animation(.easeInOut(duration: 0.2), value: isHowToUsePresented)
+                        }
                     }
                     .frame(height: UIScreen.main.bounds.height * 0.83)
                     .padding(.bottom, 15)
@@ -209,6 +237,14 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            NotificationCenter.default.addObserver(forName: NSNotification.Name("ShowAnalysisNotification"), object: nil, queue: .main) { _ in
+                    Task { @MainActor in
+                        withAnimation {
+                            showAnalysisNotification = true
+                        }
+                    }
+                }
+                
             NotificationCenter.default.addObserver(forName: NSNotification.Name("NavigateToPinEditView"), object: nil, queue: .main) { notification in
                 if let pin = notification.object as? Pin {
                     DispatchQueue.main.async {
@@ -292,6 +328,17 @@ struct ContentView: View {
                                 .background(Color(UIColor.black))
                                 .clipShape(Circle())
                         }
+                        // New "How to Use" button
+                        Button(action: {
+                            isHowToUsePresented = true
+                        }) {
+                            Image(systemName: "questionmark.circle")
+                                .font(.system(size: 28, weight: .bold))
+                                .frame(width: 60, height: 60)
+                                .foregroundColor(.white)
+                                .background(Color(UIColor.black))
+                                .clipShape(Circle())
+                        }
                     }
                     .padding(.bottom, 30)
                     .padding(.trailing, 40)
@@ -325,7 +372,6 @@ struct ContentView: View {
     
     // MARK: - Zoom Control Methods
     private func zoomIn() {
-        // Optionally, clamp to a minimum if needed.
         let minLatitudeDelta: CLLocationDegrees = 0.005
         let minLongitudeDelta: CLLocationDegrees = 0.005
         let newLatitudeDelta = max(region.span.latitudeDelta / 2.0, minLatitudeDelta)
@@ -334,11 +380,10 @@ struct ContentView: View {
     }
 
     private func zoomOut() {
-        // Clamp the zoom-out to a maximum value to prevent crashes.
         let maxLatitudeDelta: CLLocationDegrees = 180.0
         let maxLongitudeDelta: CLLocationDegrees = 360.0
-        let newLatitudeDelta = min(region.span.latitudeDelta * 2.0, maxLatitudeDelta)
-        let newLongitudeDelta = min(region.span.longitudeDelta * 2.0, maxLongitudeDelta)
+        let newLatitudeDelta = min(region.span.latitudeDelta * 3.0, maxLatitudeDelta)
+        let newLongitudeDelta = min(region.span.longitudeDelta * 3.0, maxLongitudeDelta)
         region.span = MKCoordinateSpan(latitudeDelta: newLatitudeDelta, longitudeDelta: newLongitudeDelta)
     }
 }
@@ -354,6 +399,27 @@ struct WelcomePanelView: View {
 
                     Text("      Tap anywhere on the map to add a new location.")
                         .foregroundColor(.gray)
+                }
+
+                Spacer()
+            }
+            .padding()
+            .background(Color.black.opacity(0.75))
+            .cornerRadius(12)
+            .shadow(radius: 4)
+            .padding()
+        }
+    }
+}
+
+struct AnalysisNotificationView: View {
+    var body: some View {
+        VStack {
+            HStack {
+                VStack(alignment: .leading) {
+                    Text("Check the chart icon for an analysis of your travels!")
+                        .font(.headline)
+                        .foregroundColor(.white)
                 }
 
                 Spacer()

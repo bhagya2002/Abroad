@@ -149,14 +149,20 @@ struct TripDetailsView: View {
             .padding()
         }
         .onAppear {
+            // Initialize dates and budget
             startDate = pin.startDate ?? Date()
             endDate = pin.endDate ?? Date()
             if let budget = pin.tripBudget {
                 budgetText = String(format: "%.2f", budget)
             }
+            // Load saved images for this pin
+            Task {
+                await loadSavedImages()
+            }
         }
         .onDisappear {
-            pin.startDate = startDate // Save selected date to pin
+            // Save selected dates back to the pin
+            pin.startDate = startDate
             pin.endDate = endDate
         }
     }

@@ -80,6 +80,7 @@ struct PinEditView: View {
                 }
             }
         }
+        .interactiveDismissDisabled(pin.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         .preferredColorScheme(.dark)  // Force dark mode throughout this view.
         .task {
             await loadSavedImages()
