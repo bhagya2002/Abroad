@@ -78,7 +78,7 @@ struct SidebarModalView: View {
 
     private func createCarbonProgressView() -> some View {
         VStack(alignment: .leading) {
-            Text("Your Carbon Footprint Goal")
+            Text("Max carbon emission goal usage")
                 .font(.headline)
             ProgressView(value: getTotalEmissions(), total: getUserCarbonGoal())
                 .progressViewStyle(LinearProgressViewStyle())

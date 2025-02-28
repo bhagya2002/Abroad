@@ -16,7 +16,7 @@ struct SustainableTravelGuide {
 
     static let guides: [SustainableTravelGuide] = [
         SustainableTravelGuide(
-            region: "Tropical",
+            region: "Tropical Regions",
             coordinateRange: (-10...25, -180...180),
             ecoTips: [
                 "Use reef-safe sunscreen to protect marine ecosystems.",
