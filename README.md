@@ -2,6 +2,10 @@
 
 This is my submission for the WWDC 2025 Student Swift Challenge.
 
+![Abroad Main View](Abroad_MainView.png)
+![Abroad Future Trip Planning](Abroad_FutureTripTips.png)
+![Abroad Visited Location Carbon Emission Tracking](Abroad_VisitedAnalysis.png)
+
 ## What is Abroad and the inspiration behind it?
 
 Abroad is a travel companion that lets users save trips while tracking sustainable metrics and encouraging eco-friendly travel choices.
@@ -29,3 +33,6 @@ Mobility Mate helps elderly patients in physiotherapy track their recovery proce
 Safe Contact focuses on personal safety by keeping users connected with trusted contacts. Whether walking home alone or out at night, users can automatically share their location and respond to check-ins.
 
 Nourished is a social, gamified wellness app that helps users track habits, set goals, journal progress, and receive AI-driven insights to build a healthier lifestyle. It encourages self-care through personalized recommendations, community engagement, and progress tracking, making wellness feel motivating rather than overwhelming. By fostering a supportive environment, Nourished helps users stay accountable and develop sustainable habits.
+
+Github topics:
+Travel, Sustainability, R
